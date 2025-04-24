@@ -1,3 +1,5 @@
+# This Makefile builds the VL53L5CX reference driver as a shared library.
+
 CC := gcc
 BUILD_DIR := ./build
 SRC_FILES := $(shell find ../vl53l5cx-linux/user/ \
@@ -27,9 +29,9 @@ mkdirs:
 $(BUILD_DIR)/%.o: %.c | mkdirs
 	$(CC) $(CFLAGS) $(INCLUDE_PATH) -c $< -o $@
 
-libvl53l5cx-driver.so: $(addprefix build/, $(OBJ_FILES))
+$(BUILD_DIR)/libvl53l5cx-driver.so: $(addprefix build/, $(OBJ_FILES))
 	$(CC) -shared -o $@ $^
 
 clean:
-	rm -rf $(BUILD_DIR) && rm libvl53l5cx-driver.so
+	rm -rf $(BUILD_DIR)
 

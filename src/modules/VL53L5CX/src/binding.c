@@ -6,29 +6,179 @@
 
 
 /**
- * Assign pre-processor constants from vl53l5cx_api.h to actual constants
- * to have them have addresses. See vl53l5cx_api.h for explanations on what
- * is what.
+ * Assign pre-processor constants from vl53l5cx_api.h to the array for them
+ * to have addresses to point to. For their meanings, see vl53l5cx_api.h.
  */
 
-const char* _API_REVISION = VL53L5CX_API_REVISION;
-const uint16_t _DEFAULT_I2C_ADDRESS = VL53L5CX_DEFAULT_I2C_ADDRESS;
-const uint8_t _RESOLUTION_4X4 = VL53L5CX_RESOLUTION_4X4;
-const uint8_t _RESOLUTION_8X8 = VL53L5CX_RESOLUTION_8X8;
-const uint8_t _TARGET_ORDER_CLOSEST = VL53L5CX_TARGET_ORDER_CLOSEST;
-const uint8_t _TARGET_ORDER_STRONGEST = VL53L5CX_TARGET_ORDER_STRONGEST;
-const uint8_t _RANGING_MODE_AUTONOMOUS = VL53L5CX_RANGING_MODE_AUTONOMOUS;
-const uint8_t _RANGING_MODE_CONTINUOUS = VL53L5CX_RANGING_MODE_CONTINUOUS;
-const uint8_t _POWER_MODE_SLEEP = VL53L5CX_POWER_MODE_SLEEP;
-const uint8_t _POWER_MODE_WAKEUP = VL53L5CX_POWER_MODE_WAKEUP;
-const uint8_t _OK = VL53L5CX_STATUS_OK;
-const uint8_t _TIMEOUT_ERROR = VL53L5CX_STATUS_TIMEOUT_ERROR;
-const uint8_t _CORRUPTED_FRAME = VL53L5CX_STATUS_CORRUPTED_FRAME;
-const uint8_t _CRC_CSUM_FAILED = VL53L5CX_STATUS_CRC_CSUM_FAILED;
-const uint8_t _XTALK_FAILED = VL53L5CX_STATUS_XTALK_FAILED;
-const uint8_t _MCU_ERROR = VL53L5CX_MCU_ERROR;
-const uint8_t _STATUS_INVALID_PARAM = VL53L5CX_STATUS_INVALID_PARAM;
-const uint8_t _STATUS_ERROR = VL53L5CX_STATUS_ERROR;
+typedef struct {
+    const char* name;
+    binding_constant_type_t type;
+    size_t value; // To be cast to proper type when making the value
+} __constants_t;
+
+static const __constants_t CONSTS[] = {
+    {
+        .name = "VL53L5CX_API_REVISION",
+        .type = CT_UTF_8_STRING,
+        .value = (size_t)VL53L5CX_API_REVISION
+    }, {
+        .name = "VL53L5CX_DEFAULT_I2C_ADDRESS",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_DEFAULT_I2C_ADDRESS
+    }, {
+        .name = "VL53L5CX_RESOLUTION_4X4",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_RESOLUTION_4X4
+    }, {
+        .name = "VL53L5CX_RESOLUTION_8X8",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_RESOLUTION_8X8
+    }, {
+        .name = "VL53L5CX_TARGET_ORDER_CLOSEST",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_TARGET_ORDER_CLOSEST
+    }, {
+        .name = "VL53L5CX_TARGET_ORDER_STRONGEST",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_TARGET_ORDER_STRONGEST
+    }, {
+        .name = "VL53L5CX_RANGING_MODE_AUTONOMOUS",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_RANGING_MODE_AUTONOMOUS
+    }, {
+        .name = "VL53L5CX_RANGING_MODE_CONTINUOUS",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_RANGING_MODE_CONTINUOUS
+    }, {
+        .name = "VL53L5CX_POWER_MODE_SLEEP",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_POWER_MODE_SLEEP
+    }, {
+        .name = "VL53L5CX_POWER_MODE_WAKEUP",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_POWER_MODE_WAKEUP
+    }, {
+        .name = "VL53L5CX_STATUS_OK",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_STATUS_OK
+    }, {
+        .name = "VL53L5CX_STATUS_TIMEOUT_ERROR",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_STATUS_TIMEOUT_ERROR
+    }, {
+        .name = "VL53L5CX_STATUS_CORRUPTED_FRAME",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_STATUS_CORRUPTED_FRAME
+    }, {
+        .name = "VL53L5CX_STATUS_CRC_CSUM_FAILED",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_STATUS_CRC_CSUM_FAILED
+    }, {
+        .name = "VL53L5CX_STATUS_XTALK_FAILED",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_STATUS_XTALK_FAILED
+    }, {
+        .name = "VL53L5CX_MCU_ERROR",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_MCU_ERROR
+    }, {
+        .name = "VL53L5CX_STATUS_INVALID_PARAM",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_STATUS_INVALID_PARAM
+    }, {
+        .name = "VL53L5CX_STATUS_ERROR",
+        .type = CT_UINT8_INTEGER,
+        .value = VL53L5CX_STATUS_ERROR
+    }, {
+        .name = "VL53L5CX_START_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_START_BH
+    }, {
+        .name = "VL53L5CX_METADATA_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_METADATA_BH
+    }, {
+        .name = "VL53L5CX_COMMONDATA_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_COMMONDATA_BH
+    }, {
+        .name = "VL53L5CX_AMBIENT_RATE_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_AMBIENT_RATE_BH
+    }, {
+        .name = "VL53L5CX_SPAD_COUNT_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_SPAD_COUNT_BH
+    }, {
+        .name = "VL53L5CX_NB_TARGET_DETECTED_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_NB_TARGET_DETECTED_BH
+    }, {
+        .name = "VL53L5CX_SIGNAL_RATE_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_SIGNAL_RATE_BH
+    }, {
+        .name = "VL53L5CX_RANGE_SIGMA_MM_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_RANGE_SIGMA_MM_BH
+    }, {
+        .name = "VL53L5CX_DISTANCE_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_DISTANCE_BH
+    }, {
+        .name = "VL53L5CX_REFLECTANCE_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_REFLECTANCE_BH
+    }, {
+        .name = "VL53L5CX_TARGET_STATUS_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_TARGET_STATUS_BH
+    }, {
+        .name = "VL53L5CX_MOTION_DETECT_BH",
+        .type = CT_UINT32_INTEGER,
+        .value = VL53L5CX_MOTION_DETECT_BH
+    }, {
+        .name = "VL53L5CX_METADATA_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_METADATA_IDX
+    }, {
+        .name = "VL53L5CX_SPAD_COUNT_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_SPAD_COUNT_IDX
+    }, {
+        .name = "VL53L5CX_AMBIENT_RATE_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_AMBIENT_RATE_IDX
+    }, {
+        .name = "VL53L5CX_NB_TARGET_DETECTED_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_NB_TARGET_DETECTED_IDX
+    }, {
+        .name = "VL53L5CX_SIGNAL_RATE_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_SIGNAL_RATE_IDX
+    }, {
+        .name = "VL53L5CX_RANGE_SIGMA_MM_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_RANGE_SIGMA_MM_IDX
+    }, {
+        .name = "VL53L5CX_DISTANCE_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_DISTANCE_IDX
+    }, {
+        .name = "VL53L5CX_REFLECTANCE_EST_PC_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_REFLECTANCE_EST_PC_IDX
+    }, {
+        .name = "VL53L5CX_TARGET_STATUS_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_TARGET_STATUS_IDX
+    }, {
+        .name = "VL53L5CX_MOTION_DETEC_IDX",
+        .type = CT_UINT16_INTEGER,
+        .value = VL53L5CX_MOTION_DETEC_IDX
+    }
+};
 
 
 napi_value init(napi_env env, napi_value exports) {
@@ -37,149 +187,17 @@ napi_value init(napi_env env, napi_value exports) {
      * Constants from vl53l5cx_api.h
      */
 
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_API_REVISION", 
-        CT_UTF_8_STRING,
-        _API_REVISION
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_DEFAULT_I2C_ADDRESS", 
-        CT_UINT8_INTEGER,
-        &_DEFAULT_I2C_ADDRESS
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_RESOLUTION_4X4", 
-        CT_UINT8_INTEGER,
-        &_RESOLUTION_4X4
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_RESOLUTION_8X8", 
-        CT_UINT8_INTEGER,
-        &_RESOLUTION_8X8
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_TARGET_ORDER_CLOSEST", 
-        CT_UINT8_INTEGER,
-        &_TARGET_ORDER_CLOSEST
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_TARGET_ORDER_STRONGEST", 
-        CT_UINT8_INTEGER,
-        &_TARGET_ORDER_STRONGEST
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_RANGING_MODE_CONTINUOUS", 
-        CT_UINT8_INTEGER,
-        &_RANGING_MODE_CONTINUOUS
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_RANGING_MODE_AUTONOMOUS", 
-        CT_UINT8_INTEGER,
-        &_RANGING_MODE_AUTONOMOUS
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_POWER_MODE_SLEEP", 
-        CT_UINT8_INTEGER,
-        &_POWER_MODE_SLEEP
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_POWER_MODE_WAKEUP", 
-        CT_UINT8_INTEGER,
-        &_POWER_MODE_WAKEUP
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_STATUS_OK", 
-        CT_UINT8_INTEGER,
-        &_OK
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_STATUS_TIMEOUT_ERROR", 
-        CT_UINT8_INTEGER,
-        &_TIMEOUT_ERROR
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_STATUS_CORRUPTED_FRAME", 
-        CT_UINT8_INTEGER,
-        &_CORRUPTED_FRAME
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_STATUS_CRC_CSUM_FAILED", 
-        CT_UINT8_INTEGER,
-        &_CRC_CSUM_FAILED
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_STATUS_XTALK_FAILED", 
-        CT_UINT8_INTEGER,
-        &_XTALK_FAILED
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_MCU_ERROR", 
-        CT_UINT8_INTEGER,
-        &_MCU_ERROR
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_STATUS_INVALID_PARAM", 
-        CT_UINT8_INTEGER,
-        &_STATUS_INVALID_PARAM
-    );
-
-    register_constant(
-        env, 
-        exports, 
-        "VL53L5CX_STATUS_ERROR", 
-        CT_UINT8_INTEGER,
-        &_STATUS_ERROR
-    );
+    for (size_t i = 0; i < sizeof(CONSTS) / sizeof(CONSTS[0]); i++) {
+        register_constant(
+            env,
+            exports,
+            CONSTS[i].name,
+            CONSTS[i].type,
+            CONSTS[i].type == CT_UTF_8_STRING 
+                ? ((void*)CONSTS[i].value)
+                : ((void*)&CONSTS[i].value)
+        );
+    }
 
     return exports;
 }

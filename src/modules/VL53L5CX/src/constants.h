@@ -1,5 +1,5 @@
-#ifndef __CONSTANTS
-#define __CONSTANTS
+#ifndef __CONSTANTS_H
+#define __CONSTANTS_H
 
 #include <vl53l5cx_api.h>
 #include <vl53l5cx_plugin_detection_thresholds.h>
@@ -20,11 +20,11 @@ typedef enum {
     CT_UTF_8_STRING,
     CT_UINT8_INTEGER,
     CT_UINT16_INTEGER,
+    CT_UINT32_INTEGER,
 } binding_constant_type_t;
 
 /**
  * Register a constant to the exposed Nodejs module API.
-
  */
 void register_constant(
     napi_env env,
@@ -75,6 +75,17 @@ void register_constant(
         napi_create_reference(env, val, 1, &ref);
         break;
     
+    case CT_UINT32_INTEGER:
+        // TODO: Check for OOM and what not.
+        napi_create_uint32(
+            env, 
+            *(uint32_t*) constant_data, 
+            &val
+        );
+        napi_set_named_property(env, exports, binding_name, val);
+        napi_create_reference(env, val, 1, &ref);
+        break;
+
     default:
         break;
     }

@@ -13,15 +13,16 @@
 /// @param info Device addr as optional arg
 /// @return true on success
 napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
-    napi_value argv[1] = {0};
+    napi_value argv[2] = {0};
     napi_value this;
     size_t argc;
-    VL53L5CX_Configuration* conf;
+    VL53L5CX_Configuration conf[1];
     napi_status status;
     uint32_t read_sensor_address;
     uint16_t sensor_address;
     napi_value return_boolean;
 
+    printf("Entering func\n");
     status = napi_get_cb_info(env, info, &argc, argv, &this, (void**)&conf);
     if (status != napi_ok) {
         napi_throw_error(
@@ -30,6 +31,7 @@ napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
             "Happened in cb_vl53l5cx_comms_init"
         );
     }
+    printf("Got cb_info\n");
     // Accept 1 argument which is the sensor address.
     if (argc > 0) {
         status = napi_get_value_uint32(env, argv[0], &read_sensor_address);
@@ -41,10 +43,11 @@ napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
             );
         } else {
             // Change to the address given as argument.
-            sensor_address = read_sensor_address;
+            sensor_address = (uint16_t)read_sensor_address;
             conf->platform.address = sensor_address;
         }
     }
+    printf("Got uint32_t value\n");
 
     uint8_t comms_awry = vl53l5cx_comms_init(&conf->platform);
     if(comms_awry) {
@@ -66,11 +69,12 @@ void register_vl53l5cx_comms_init(
     const char* name = "vl53l5cx_comms_init";
     VL53L5CX_Configuration conf;
 
+    napi_callback cb = cb_vl53l5cx_comms_init;
     status = napi_create_function(
         env,
         name, 
         strlen(name),
-        cb_vl53l5cx_is_alive,
+        cb,
         &conf, 
         &fn
     );

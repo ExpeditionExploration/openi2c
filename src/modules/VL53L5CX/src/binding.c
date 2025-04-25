@@ -3,6 +3,7 @@
 #include <vl53l5cx_api.h>
 
 #include "constants.h"
+#include "funcs.h"
 
 
 /**
@@ -198,6 +199,15 @@ napi_value init(napi_env env, napi_value exports) {
                 : ((void*)&CONSTS[i].value)
         );
     }
+
+    /**
+     * Register funcs
+     */
+    VL53L5CX_Configuration conf;
+
+    register_vl53l5cx_comms_init(&conf.platform, env, exports);
+    register_vl53l5cx_is_alive(&conf, env, exports);
+
 
     return exports;
 }

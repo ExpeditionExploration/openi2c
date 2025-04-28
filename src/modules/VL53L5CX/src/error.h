@@ -2,36 +2,25 @@
 #define __ERROR_H
 
 #include <node_api.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 
-
-/* Maximum error msg length. */
-static const size_t __MAX_ERROR_MSG_LEN = 81;
-
-
 /**
- * Status codes for abrupt exits.
- * 
- * It's bad to abruptly exit, but Node going UB is even worse. These make it
- * easier to debug and improve error handling.
+ * Errors indicating a hardware problem.
  */
 
- extern const uint8_t FAILED_TO_THROW_ERROR;
- extern const uint8_t UNDEFINED_ERROR;
- extern const uint8_t IMPLEMENTATION_MISSING;
- 
+extern const char* INVALID_PARAM_ERROR;
+extern const char* XTALK_ERROR;
+extern const char* CORRUPTED_FRAME_ERROR;
+extern const char* TIMEOUT_ERROR;
+extern const char* CRC_CHECKSUM_ERROR;
+extern const char* MCU_ERROR;
+extern const char* ERROR;
 
 /**
- * Return NULL on napi_ok.
- * 
- * Otherwise return exception object.
+ * Node-API side of errors.
  */
-void handle_status_codes(
-    napi_env env,
-    napi_status status
-);
+extern const char* MODULE_INIT_ERROR;
+extern const char* MODULE_FUNC_ARGUMENT_ERROR;
+extern const char* MODULE_FUNC_INFO_ERROR;
 
 #endif

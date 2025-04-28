@@ -1,4 +1,6 @@
 #include <string.h>
+#include <stdio.h>
+
 #include <node_api.h>
 #include <vl53l5cx_api.h>
 
@@ -203,11 +205,10 @@ napi_value init(napi_env env, napi_value exports) {
     /**
      * Register funcs
      */
-    VL53L5CX_Configuration conf;
+    VL53L5CX_Configuration conf = {0};
 
     register_vl53l5cx_comms_init(&conf.platform, env, exports);
     register_vl53l5cx_is_alive(&conf, env, exports);
-
 
     return exports;
 }

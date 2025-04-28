@@ -5,6 +5,10 @@
 
 #include "funcs.h"
 
+/* Maximum length of formatted error message. */
+#define MAX_LEN_ERROR 80
+
+
 
 /************
  * Comms init
@@ -17,20 +21,32 @@
 napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
     napi_value argv[1] = {0};
     napi_value this;
-    size_t argc;
-    VL53L5CX_Configuration conf[1];
+    size_t argc = 0;
+    void* data = NULL;
     napi_status status;
     uint32_t read_sensor_address;
 
-    status = napi_get_cb_info(env, info, &argc, argv, &this, (void**)&conf);
+    status = napi_get_cb_info(env, info, &argc, argv, &this, &data);
     if (status != napi_ok) {
+        const napi_extended_error_info* error_info;
+        napi_get_last_error_info(env, &error_info);
+        char msg[MAX_LEN_ERROR] = {0};
+        snprintf(
+            msg, 
+            MAX_LEN_ERROR-1, 
+            "NAPI error: %s\n", 
+            error_info->error_message
+        );
         napi_throw_error(
             env, 
             MODULE_FUNC_INFO_ERROR, 
-            "cb_vl53l5cx_comms_init"
+            msg
         );
         return NULL;
     }
+    VL53L5CX_Platform* platform = (VL53L5CX_Platform*) data;
+    printf("plt addr: %p\n", platform);
+
     // Accept 1 argument which is the sensor address.
     if (argc > 0) {
         status = napi_get_value_uint32(env, argv[0], &read_sensor_address);
@@ -43,16 +59,23 @@ napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
             return NULL;
         } else {
             // Change to the address given as argument.
-            conf->platform.address = (uint8_t)read_sensor_address;
+            platform->address = (uint8_t)read_sensor_address;
         }
     }
 
-    uint8_t comms_awry = vl53l5cx_comms_init(&conf->platform);
+    uint8_t comms_awry = vl53l5cx_comms_init(platform);
     if(comms_awry) {
+        char err[MAX_LEN_ERROR] = {0};
+        snprintf(
+            err, 
+            MAX_LEN_ERROR-1, 
+            "couldn't establish comms with vl53l5cx at %hhx", 
+            platform->address
+        );
         napi_throw_error(
             env, 
-            "init error", 
-            "Could not init the device"
+            INIT_COMMS_ERROR, 
+            err
         );
     }
     return NULL;
@@ -63,10 +86,11 @@ void register_vl53l5cx_comms_init(
     napi_env env,
     napi_value exports
 ) {
+    printf("plt addr: %p\n", platform);
+
     napi_value fn;
     napi_status status;
     const char* name = "vl53l5cx_comms_init";
-    VL53L5CX_Configuration conf;
 
     napi_callback cb = cb_vl53l5cx_comms_init;
     status = napi_create_function(
@@ -74,7 +98,7 @@ void register_vl53l5cx_comms_init(
         name, 
         strlen(name),
         cb,
-        &conf, 
+        platform, 
         &fn
     );
     if (status != napi_ok) {
@@ -110,13 +134,13 @@ void register_vl53l5cx_comms_init(
 napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
     napi_value this_;
     size_t argc;
-    VL53L5CX_Configuration* conf;
+    void* data;
     napi_status status;
     uint8_t is_alive = 0;
     uint8_t drv_status = 0;
 
     printf("getting call info\n");
-    status = napi_get_cb_info(env, info, &argc, NULL, &this_, (void**)(&conf));
+    status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
     if (status != napi_ok) {
         napi_throw_error(
             env, 
@@ -124,18 +148,18 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
             "Happened in cb_vl53l5cx_is_alive"
         );
     }
+    VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
 
     // Call the driver's relevant function.
     drv_status = vl53l5cx_is_alive(conf, &is_alive);
     if (!is_alive || drv_status) {
         // VL53LCX has problems.
-        #define MAX_LEN 80
-        char msg[MAX_LEN] = {0};
+        char msg[MAX_LEN_ERROR] = {0};
         
         if (drv_status & VL53L5CX_STATUS_TIMEOUT_ERROR) {
             snprintf(
                 msg,
-                MAX_LEN-1, 
+                MAX_LEN_ERROR-1, 
                 "timeout waiting for sensor at 0x%hhx, drv_status: 0x%hhx",
                 (uint8_t)conf->platform.address,
                 drv_status
@@ -149,7 +173,7 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
         } else if (drv_status & VL53L5CX_STATUS_CORRUPTED_FRAME) {
             snprintf(
                 msg,
-                MAX_LEN-1,
+                MAX_LEN_ERROR-1,
                 "corrupted frame while communicating with sensor at 0x%hhx,  drv_status: 0x%hhx",
                 (uint8_t)conf->platform.address,
                 drv_status
@@ -163,7 +187,7 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
         } else if (drv_status & VL53L5CX_STATUS_XTALK_FAILED) {
             snprintf(
                 msg,
-                MAX_LEN-1,
+                MAX_LEN_ERROR-1,
                 "xtalk correction error with sensor at 0x%hhx, drv_status: 0x%hhx",
                 (uint8_t)conf->platform.address,
                 drv_status
@@ -177,7 +201,7 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
         } else if (drv_status & VL53L5CX_STATUS_INVALID_PARAM) {
             snprintf(
                 msg,
-                MAX_LEN-1,
+                MAX_LEN_ERROR-1,
                 "invalid parameter to sensor at 0x%hhx, drv_status: 0x%hhx",
                 (uint8_t)conf->platform.address,
                 drv_status

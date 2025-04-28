@@ -11,6 +11,8 @@ const char* CRC_CHECKSUM_ERROR = "crc checksum error";
 const char* MCU_ERROR = "mcu error";
 const char* ERROR = "unknown generic error";
 
+const char* INIT_COMMS_ERROR = "connection error";
+
 const char* MODULE_INIT_ERROR = "error initializing module";
 const char* MODULE_FUNC_ARGUMENT_ERROR = "invalid arguments";
 const char* MODULE_FUNC_INFO_ERROR = "could not parse cb info";

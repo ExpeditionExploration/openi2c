@@ -139,7 +139,6 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
     uint8_t is_alive = 0;
     uint8_t drv_status = 0;
 
-    printf("getting call info\n");
     status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
     if (status != napi_ok) {
         napi_throw_error(
@@ -147,6 +146,7 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
             "napi_get_cb_info error", 
             "Happened in cb_vl53l5cx_is_alive"
         );
+        return NULL;
     }
     VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
 
@@ -251,3 +251,81 @@ void register_vl53l5cx_is_alive(
         );
     }
 }
+
+
+/***************
+ * Start ranging
+ */
+
+ napi_value cb_vl53l5cx_start_ranging(napi_env env, napi_callback_info info) {
+    napi_value this_;
+    size_t argc;
+    void* data;
+    napi_status status;
+    uint8_t is_alive = 0;
+    uint8_t drv_status = 0;
+
+    status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            "napi_get_cb_info error", 
+            "Happened in cb_vl53l5cx_start_ranging"
+        );
+        return NULL;
+    }
+    VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
+
+    char msg[MAX_LEN_ERROR] = {0};
+    drv_status = vl53l5cx_start_ranging(conf);
+    if (drv_status) {
+        snprintf(
+            msg,
+            MAX_LEN_ERROR-1,
+            "Error with drv_status 0x%hhx. fn: cb_vl53l5cx_start_ranging",
+            drv_status
+        );
+        napi_throw_error(
+            env, 
+            ERROR, 
+            msg
+        );
+    }
+    return NULL;
+ }
+
+ void register_vl53l5cx_start_ranging(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+ ) {
+    napi_value fn;
+    napi_status status;
+    const char* name = "vl53l5cx_start_ranging";
+
+    status = napi_create_function(
+        env,
+        name, 
+        strlen(name),
+        cb_vl53l5cx_start_ranging,
+        conf, 
+        &fn
+    );
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            MODULE_INIT_ERROR, 
+            "Could not create JS func cb_vl53l5cx_start_ranging"
+        );
+    }
+
+    status = napi_set_named_property(env, exports, name, fn);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env,
+            MODULE_INIT_ERROR,
+            "Could not bind JS func cb_vl53l5cx_start_ranging to the module"
+        );
+    }
+}
+

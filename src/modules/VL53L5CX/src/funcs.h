@@ -40,4 +40,16 @@ void register_vl53l5cx_is_alive(
     napi_value exports
 );
 
+
+/***************
+ * Start ranging
+ */
+
+ napi_value cb_vl53l5cx_start_ranging(napi_env env, napi_callback_info info);
+ void register_vl53l5cx_start_ranging(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+ );
+
 #endif

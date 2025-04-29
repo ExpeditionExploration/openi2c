@@ -4,7 +4,7 @@
     "description": "This library is a set of cross platform drivers for common I2C devices.",
     "main": "dist/index.js",
     "scripts": {
-        "scan": "ts-node -e \"import { scan } from './src'; scan(+process.argv[2] || 0);\"",
+        "scan": "ts-node -e \"import { scan } from './src'; scan(+process.argv[2] || 1);\"",
         "build": "rm -rf dist; tsc",
         "build:watch": "npm run build -- --watch",
         "start": "ts-node src/main.ts",

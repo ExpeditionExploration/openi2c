@@ -398,6 +398,9 @@ void register_vl53l5cx_is_alive(
     }
 }
 
+/**
+ *  Stop ranging
+ */
 
 napi_value cb_vl53l5cx_stop_ranging(napi_env env, napi_callback_info info) {
     napi_value this_;

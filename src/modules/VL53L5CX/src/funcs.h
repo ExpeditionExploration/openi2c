@@ -63,4 +63,14 @@ void register_VL53L5CX_wait_for_dataready(
     napi_value exports
 );
 
+/**
+ * Stop ranging
+ */
+napi_value cb_vl53l5cx_stop_ranging(napi_env, napi_callback_info);
+void register_vl53l5cx_stop_ranging(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+);
+
 #endif

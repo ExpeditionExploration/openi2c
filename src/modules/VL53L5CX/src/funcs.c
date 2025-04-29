@@ -396,5 +396,74 @@ void register_vl53l5cx_is_alive(
             "Could not bind JS func vl53l5cx_wait_for_dataready to the module"
         );
     }
+}
 
- }
+
+napi_value cb_vl53l5cx_stop_ranging(napi_env env, napi_callback_info info) {
+    napi_value this_;
+    size_t argc;
+    void* data;
+    napi_status status;
+    uint8_t drv_status = 0;
+
+    status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            "napi_get_cb_info error", 
+            "Happened in cb_vl53l5cx_stop_ranging"
+        );
+        return NULL;
+    }
+    VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
+
+    drv_status = vl53l5cx_stop_ranging(conf);
+    if (!drv_status) {
+        napi_throw_error(
+            env,
+            ERROR,
+            "fn: cb_vl53l5cx_stop_ranging"
+        );
+        napi_throw_error(
+            env,
+            "could not stop ranging",
+            "fn: cb_vl53l5cx_stop_ranging"
+        );
+    }
+    return NULL;
+
+}
+void register_vl53l5cx_stop_ranging(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+) {
+    napi_value fn;
+    napi_status status;
+    const char* name = "vl53l5cx_stop_ranging";
+
+    status = napi_create_function(
+        env,
+        name, 
+        strlen(name),
+        cb_VL53L5CX_wait_for_dataready,
+        conf, 
+        &fn
+    );
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            MODULE_INIT_ERROR, 
+            "Could not create JS func vl53l5cx_stop_ranging"
+        );
+    }
+
+    status = napi_set_named_property(env, exports, name, fn);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env,
+            MODULE_INIT_ERROR,
+            "Could not bind JS func vl53l5cx_stop_ranging to the module"
+        );
+    }
+}

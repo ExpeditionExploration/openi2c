@@ -54,10 +54,10 @@ void register_vl53l5cx_start_ranging(
 
 
  /**
-  * Wait till sensor has new data
+  * Check if sensor has new data
   */
-napi_value cb_VL53L5CX_wait_for_dataready(napi_env, napi_callback_info);
-void register_VL53L5CX_wait_for_dataready(
+napi_value cb_vl53l5cx_check_data_ready(napi_env, napi_callback_info);
+void register_vl53l5cx_check_data_ready(
     VL53L5CX_Configuration* conf,
     napi_env env,
     napi_value exports
@@ -72,6 +72,17 @@ void register_VL53L5CX_wait_for_dataready(
  */
 napi_value cb_vl53l5cx_stop_ranging(napi_env, napi_callback_info);
 void register_vl53l5cx_stop_ranging(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+);
+
+
+/**
+ * Get ranging data
+ */
+napi_value cb_vl53l5cx_get_ranging_data(napi_env, napi_callback_info);
+void register_vl53l5cx_get_ranging_data(
     VL53L5CX_Configuration* conf,
     napi_env env,
     napi_value exports

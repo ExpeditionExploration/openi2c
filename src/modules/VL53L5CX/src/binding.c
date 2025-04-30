@@ -209,9 +209,10 @@ napi_value init(napi_env env, napi_value exports) {
 
     register_vl53l5cx_comms_init(&conf.platform, env, exports);
     register_vl53l5cx_is_alive(&conf, env, exports);
-    register_VL53L5CX_wait_for_dataready(&conf, env, exports);
+    register_vl53l5cx_check_data_ready(&conf, env, exports);
     register_vl53l5cx_start_ranging(&conf, env, exports);
     register_vl53l5cx_stop_ranging(&conf, env, exports);
+    register_vl53l5cx_get_ranging_data(&conf, env, exports);
 
     return exports;
 }

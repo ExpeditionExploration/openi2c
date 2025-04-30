@@ -11,7 +11,7 @@ function example1() {
             while (vl53l5cx.vl53l5cx_check_data_ready(0) == false) {
                 const sab = new SharedArrayBuffer(4);
                 const int32 = new Int32Array(sab);
-                Atomics.wait(int32, 0, 0, 5);
+                Atomics.wait(int32, 0, 0, 5); // Sleep for 5ms
             }
             const data = vl53l5cx.vl53l5cx_get_ranging_data(0);
             console.log(`Chip temperature: ${data.chipTempC}`);

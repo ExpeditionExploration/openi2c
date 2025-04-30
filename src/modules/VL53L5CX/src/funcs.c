@@ -8,6 +8,9 @@
 /* Maximum length of formatted error message. */
 #define MAX_LEN_ERROR 80
 
+/* Maximum number of arguments the binding function can take from Node */
+#define MAX_ARGUMENTS 10
+
 
 
 /************
@@ -20,9 +23,9 @@
 /// @return nothing
 napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
     printf("comms init called\n");
-    napi_value argv[1] = {NULL};
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
     napi_value this;
-    size_t argc = 0;
+    size_t argc = MAX_ARGUMENTS;
     void* data = NULL;
     napi_status status;
 
@@ -130,11 +133,11 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
     printf("comms is it alive called\n");
 
     napi_value this_;
-    size_t argc;
+    size_t argc = MAX_ARGUMENTS;
     void* data;
     napi_status status;
     uint8_t is_alive = 0;
-    napi_value argv[1] = {NULL};
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
 
     status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
     if (status != napi_ok) {
@@ -222,10 +225,10 @@ void register_vl53l5cx_is_alive(
 
  napi_value cb_vl53l5cx_start_ranging(napi_env env, napi_callback_info info) {
     napi_value this_;
-    size_t argc = 1;
+    size_t argc = MAX_ARGUMENTS;
     void* data;
     napi_status status;
-    napi_value argv[1] = {NULL};
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
 
     status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
     if (status != napi_ok) {
@@ -305,12 +308,12 @@ void register_vl53l5cx_is_alive(
     napi_env env,
     napi_callback_info info
 ) {
-    size_t argc = 1;
+    size_t argc = MAX_ARGUMENTS;
     napi_value this_;
     void* data;
     napi_status status;
     napi_value ret_val;
-    napi_value argv[1] = {NULL};
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
 
     status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
     if (status != napi_ok) {
@@ -387,11 +390,11 @@ void register_vl53l5cx_is_alive(
 
 napi_value cb_vl53l5cx_stop_ranging(napi_env env, napi_callback_info info) {
     napi_value this_;
-    size_t argc = 1;
+    size_t argc = MAX_ARGUMENTS;
     void* data;
     napi_status status;
     uint8_t drv_status = 0;
-    napi_value argv[1] = {NULL};
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
 
     status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
     if (status != napi_ok) {
@@ -464,10 +467,10 @@ napi_value cb_vl53l5cx_get_ranging_data(
     napi_callback_info info
 ) {
     napi_value this_;
-    size_t argc = 1;
+    size_t argc = MAX_ARGUMENTS;
     void* data;
     napi_status status;
-    napi_value argv[1] = {NULL};
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
 
     status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
     if (status != napi_ok) {

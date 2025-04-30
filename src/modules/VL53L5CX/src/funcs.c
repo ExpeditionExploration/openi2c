@@ -133,7 +133,8 @@ bool parse_args(
     if (*argc < argc_min || *argc > argc_max) {
         napi_throw_error(
             env, "argument error", "Too many or too few arguments"
-        );    
+        );
+        return false;
     }
     return true;
 }

@@ -184,6 +184,11 @@ static const __constants_t CONSTS[] = {
 };
 
 
+/**
+ * Up to 10 sensors
+ */
+static VL53L5CX_Configuration CONFS[10];
+
 napi_value init(napi_env env, napi_value exports) {
 
     /**
@@ -202,17 +207,12 @@ napi_value init(napi_env env, napi_value exports) {
         );
     }
 
-    /**
-     * Register funcs
-     */
-    VL53L5CX_Configuration conf = {0};
-
-    register_vl53l5cx_comms_init(&conf.platform, env, exports);
-    register_vl53l5cx_is_alive(&conf, env, exports);
-    register_vl53l5cx_check_data_ready(&conf, env, exports);
-    register_vl53l5cx_start_ranging(&conf, env, exports);
-    register_vl53l5cx_stop_ranging(&conf, env, exports);
-    register_vl53l5cx_get_ranging_data(&conf, env, exports);
+    register_vl53l5cx_comms_init(&CONFS, env, exports);
+    register_vl53l5cx_is_alive(&CONFS, env, exports);
+    register_vl53l5cx_check_data_ready(&CONFS, env, exports);
+    register_vl53l5cx_start_ranging(&CONFS, env, exports);
+    register_vl53l5cx_stop_ranging(&CONFS, env, exports);
+    register_vl53l5cx_get_ranging_data(&CONFS, env, exports);
 
     return exports;
 }

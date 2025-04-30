@@ -13,12 +13,13 @@
  */
 
 /// @brief Initialize comms to the sensor.
+/// @param conf is always the start of the static CONFS-array.
 /// @param env 
 /// @param info Accepts I2C device address as optional parameter.
 /// @return nothing
 napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info);
 void register_vl53l5cx_comms_init(
-    VL53L5CX_Platform* platform,
+    VL53L5CX_Configuration* conf,
     napi_env env,
     napi_value exports
 );

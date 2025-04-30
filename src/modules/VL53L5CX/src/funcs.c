@@ -19,12 +19,12 @@
 /// @param info Device addr as optional arg
 /// @return nothing
 napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
-    napi_value argv[1] = {0};
+    printf("comms init called\n");
+    napi_value argv[1] = {NULL};
     napi_value this;
     size_t argc = 0;
     void* data = NULL;
     napi_status status;
-    uint32_t read_sensor_address;
 
     status = napi_get_cb_info(env, info, &argc, argv, &this, &data);
     if (status != napi_ok) {
@@ -44,32 +44,28 @@ napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
         );
         return NULL;
     }
-    VL53L5CX_Platform* platform = (VL53L5CX_Platform*) data;
-
-    // Accept 1 argument which is the sensor address.
-    if (argc > 0) {
-        status = napi_get_value_uint32(env, argv[0], &read_sensor_address);
-        if (status != napi_ok) {
-            napi_throw_error(
-                env, 
-                MODULE_FUNC_ARGUMENT_ERROR, 
-                "Accepting an unsigned number in 8-bit range"
-            );
-            return NULL;
-        } else {
-            // Change to the address given as argument.
-            platform->address = (uint8_t)read_sensor_address;
-        }
+    if (argc != 1) {
+        napi_throw_error(
+            env, 
+            "expected config index", 
+            "Must give device index (0-9) as argument."
+        );
+        return NULL;
     }
-
-    uint8_t comms_awry = vl53l5cx_comms_init(platform);
+    uint32_t device_ndx = 0;
+    napi_get_value_uint32(env, argv[0], &device_ndx);
+    VL53L5CX_Configuration* config = 
+        ((VL53L5CX_Configuration*) data) + device_ndx;
+    
+    uint8_t comms_awry = vl53l5cx_comms_init(&config->platform);
     if(comms_awry) {
         char err[MAX_LEN_ERROR] = {0};
         snprintf(
             err, 
             MAX_LEN_ERROR-1, 
-            "couldn't establish comms with vl53l5cx at %hhx", 
-            platform->address
+            "couldn't establish comms with vl53l5cx at %hhx (ndx %u)", 
+            config->platform.address,
+            device_ndx
         );
         napi_throw_error(
             env, 
@@ -81,7 +77,7 @@ napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
 }
 
 void register_vl53l5cx_comms_init(
-    VL53L5CX_Platform* platform,
+    VL53L5CX_Configuration* platform,
     napi_env env,
     napi_value exports
 ) {
@@ -131,11 +127,14 @@ void register_vl53l5cx_comms_init(
 /// @param info 
 /// @return Nothing
 napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
+    printf("comms is it alive called\n");
+
     napi_value this_;
     size_t argc;
     void* data;
     napi_status status;
     uint8_t is_alive = 0;
+    napi_value argv[1] = {NULL};
 
     status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
     if (status != napi_ok) {
@@ -146,11 +145,25 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
         );
         return NULL;
     }
-    VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
+    if (argc != 1) {
+        napi_throw_error(
+            env, 
+            "expected config index", 
+            "Must give device index (0-9) as argument."
+        );
+        return NULL;
+    }
+    uint32_t device_ndx = 0;
+    napi_get_value_uint32(env, argv[0], &device_ndx);
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + device_ndx;
+    
 
     // Call the driver's relevant function.
     uint8_t drv_status = vl53l5cx_is_alive(conf, &is_alive);
-	if(!is_alive || status) {
+
+	if(!is_alive || drv_status) {
         char err[MAX_LEN_ERROR] = {0};
         snprintf(
             err,
@@ -209,12 +222,12 @@ void register_vl53l5cx_is_alive(
 
  napi_value cb_vl53l5cx_start_ranging(napi_env env, napi_callback_info info) {
     napi_value this_;
-    size_t argc;
+    size_t argc = 1;
     void* data;
     napi_status status;
-    uint8_t drv_status = 0;
+    napi_value argv[1] = {NULL};
 
-    status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
+    status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
     if (status != napi_ok) {
         napi_throw_error(
             env, 
@@ -223,23 +236,29 @@ void register_vl53l5cx_is_alive(
         );
         return NULL;
     }
-    VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
-
-    char msg[MAX_LEN_ERROR] = {0};
-    drv_status = vl53l5cx_start_ranging(conf);
-    if (drv_status) {
-        snprintf(
-            msg,
-            MAX_LEN_ERROR-1,
-            "Error with drv_status 0x%hhx. fn: cb_vl53l5cx_start_ranging",
-            drv_status
-        );
+    napi_valuetype type;
+    status = napi_typeof(env, argv[0], &type);
+    if (status != napi_ok || type != napi_number || argc != 1) {
         napi_throw_error(
-            env, 
-            ERROR, 
-            msg
+            env,
+            "napi argument error",
+            "Expected exactly one number argument 0<=a<10."
         );
     }
+    uint32_t device_ndx = 0;
+    status = napi_get_value_uint32(env, argv[0], &device_ndx);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            "expected config index", 
+            "Must give device index (0-9) as argument. fn: cb_vl53l5cx_start_ranging"
+        );
+        return NULL;
+    }
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + device_ndx;
+    
+    vl53l5cx_start_ranging(conf);
     return NULL;
  }
 
@@ -251,7 +270,6 @@ void register_vl53l5cx_is_alive(
     napi_value fn;
     napi_status status;
     const char* name = "vl53l5cx_start_ranging";
-
     status = napi_create_function(
         env,
         name, 
@@ -287,14 +305,14 @@ void register_vl53l5cx_is_alive(
     napi_env env,
     napi_callback_info info
 ) {
+    size_t argc = 1;
     napi_value this_;
-    size_t argc;
     void* data;
     napi_status status;
     napi_value ret_val;
-    uint8_t drv_status = 0;
+    napi_value argv[1] = {NULL};
 
-    status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
+    status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
     if (status != napi_ok) {
         napi_throw_error(
             env, 
@@ -303,11 +321,23 @@ void register_vl53l5cx_is_alive(
         );
         return NULL;
     }
-    VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
+
+    if (argc != 1) {
+        napi_throw_error(
+            env, 
+            "expected config index", 
+            "Must give device index (0-9) as argument. fn: napi_get_cb_info"
+        );
+        return NULL;
+    }
+
+    uint32_t device_ndx = 0;
+    napi_get_value_uint32(env, argv[0], &device_ndx);
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + device_ndx;
 
     uint8_t is_ready = 0;
-    drv_status = vl53l5cx_check_data_ready(conf, &is_ready);
-    printf("drv_status: 0x%hhx, device addr: 0x%hhx, conf addr: 0x%p\n", drv_status, conf->platform.address, conf);
+    vl53l5cx_check_data_ready(conf, &is_ready);
     is_ready
         ? napi_get_boolean(env, true, &ret_val)
         : napi_get_boolean(env, false, &ret_val);
@@ -357,10 +387,11 @@ void register_vl53l5cx_is_alive(
 
 napi_value cb_vl53l5cx_stop_ranging(napi_env env, napi_callback_info info) {
     napi_value this_;
-    size_t argc;
+    size_t argc = 1;
     void* data;
     napi_status status;
     uint8_t drv_status = 0;
+    napi_value argv[1] = {NULL};
 
     status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
     if (status != napi_ok) {
@@ -371,21 +402,21 @@ napi_value cb_vl53l5cx_stop_ranging(napi_env env, napi_callback_info info) {
         );
         return NULL;
     }
-    VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
-
-    drv_status = vl53l5cx_stop_ranging(conf);
-    if (!drv_status) {
+    if (argc != 1) {
         napi_throw_error(
-            env,
-            ERROR,
-            "fn: cb_vl53l5cx_stop_ranging"
+            env, 
+            "expected config index", 
+            "Must give device index (0-9) as argument."
         );
-        napi_throw_error(
-            env,
-            "could not stop ranging",
-            "fn: cb_vl53l5cx_stop_ranging"
-        );
+        return NULL;
     }
+    uint32_t device_ndx = 0;
+    napi_get_value_uint32(env, argv[0], &device_ndx);
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + device_ndx;
+    
+
+    vl53l5cx_stop_ranging(conf);
     return NULL;
 }
 void register_vl53l5cx_stop_ranging(
@@ -433,11 +464,12 @@ napi_value cb_vl53l5cx_get_ranging_data(
     napi_callback_info info
 ) {
     napi_value this_;
-    size_t argc;
+    size_t argc = 1;
     void* data;
     napi_status status;
+    napi_value argv[1] = {NULL};
 
-    status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
+    status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
     if (status != napi_ok) {
         napi_throw_error(
             env, 
@@ -446,11 +478,24 @@ napi_value cb_vl53l5cx_get_ranging_data(
         );
         return NULL;
     }
-    VL53L5CX_Configuration* conf = (VL53L5CX_Configuration*) data;
+    if (argc != 1) {
+        napi_throw_error(
+            env, 
+            "expected config index", 
+            "Must give device index (0-9) as argument."
+        );
+        return NULL;
+    }
+
+    uint32_t device_ndx = 0;
+    napi_get_value_uint32(env, argv[0], &device_ndx);
+    VL53L5CX_Configuration* config = 
+        ((VL53L5CX_Configuration*) data) + device_ndx;
+    
 
     /* Returned object */
     VL53L5CX_ResultsData results = {0};
-    uint8_t drv_status = vl53l5cx_get_ranging_data(conf, &results);
+    vl53l5cx_get_ranging_data(config, &results);
     napi_value ret_results = NULL;
     napi_create_object(env, &ret_results);
 

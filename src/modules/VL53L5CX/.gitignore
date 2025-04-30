@@ -2,3 +2,5 @@ build
 libvl53l5cx-driver.so
 src/build
 vl53l5cx-linux/user/test/menu
+node_modules
+

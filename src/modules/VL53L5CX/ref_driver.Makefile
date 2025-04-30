@@ -1,6 +1,11 @@
 # This Makefile builds the VL53L5CX reference driver as a shared library.
 
+# How to link the C driver and Node-API binds. The other choice is shared.
+LINKING=?shared
+
 CC := gcc
+AR := ar
+
 BUILD_DIR := .
 SRC_FILES := $(shell find ../../vl53l5cx-linux/user/ \
 	-path ../../vl53l5cx-linux/user/examples -prune -o \
@@ -21,20 +26,18 @@ CFLAGS = $(BASE_CFLAGS) $(CFLAGS_RELEASE) $(INCLUDE_PATH)
 
 vpath %.c $(sort $(dir $(SRC_FILES)))
 
+ifeq ($(LINKING),shared)
 all: libvl53l5cx-driver.so
+else
+all: libvl53l5cx-driver.a
+endif
 
-mkdirs:
-	mkdir -p $(BUILD_DIR)
-
-$(BUILD_DIR)/%.o: %.c | mkdirs
+$(BUILD_DIR)/%.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDE_PATH) -c $< -o $@
 
-libvl53l5cx-driver.so: $(addprefix $(BUILD_DIR)/, $(OBJ_FILES))
+$(BUILD_DIR)/libvl53l5cx-driver.so: $(addprefix $(BUILD_DIR)/, $(OBJ_FILES))
 	$(CC) -shared -o $@ $^
 
-clean_artifacts:
-	rm -rf $(BUILD_DIR)
-
-clean:
-	rm -rf $(BUILD_DIR) && rm libvl53l5cx-driver.so
+$(BUILD_DIR)/libvl53l5cx-driver.a: $(addprefix $(BUILD_DIR)/, $(OBJ_FILES))
+	$(AR) rcs $@ $^
 

@@ -1,0 +1,19 @@
+{
+  "name": "vl53l5cx",
+  "version": "0.1.0",
+  "description": "I2C driver for VL53L5CX multizone ToF sensor.",
+  "main": "dist/index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-gyp rebuild"
+  },
+  "keywords": [
+    "VL53L5CX"
+  ],
+  "author": "",
+  "license": "MIT",
+  "gypfile": true
+}

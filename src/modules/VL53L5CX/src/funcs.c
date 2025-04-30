@@ -11,7 +11,132 @@
 /* Maximum number of arguments the binding function can take from Node */
 #define MAX_ARGUMENTS 10
 
+/**
+ * Auxialiry func to parse napi_callback arguments from Node
+ * 
+ * @return success
+ */
+bool parse_args(
+    napi_env env,
+    napi_callback_info info,
+    size_t* argc,
+    napi_value *argv,
+    napi_value* this,
+    void** data,
+    size_t argc_min,
+    size_t argc_max
+) {
+    napi_status status = napi_get_cb_info(env, info, argc, argv, this, data);
+    switch (status)
+    {
+    case napi_ok:
+        break;
 
+    case napi_invalid_arg:
+        napi_throw_error(env, "argument error", "Invalid argument");
+        return false;
+
+    case napi_object_expected:
+        napi_throw_error(env, "argument error", "Object expected");
+        return false;
+
+    case napi_string_expected:
+        napi_throw_error(env, "argument error", "String expected");
+    return false;
+
+    case napi_name_expected:
+        napi_throw_error(env, "argument error", "Name expected");
+        return false;
+
+    case napi_function_expected:
+        napi_throw_error(env, "argument error", "Function expected");
+        return false;
+
+    case napi_number_expected:
+        napi_throw_error(env, "argument error", "Number expected");
+        return false;
+
+    case napi_boolean_expected:
+        napi_throw_error(env, "argument error", "Boolean expected");
+        return false;
+
+    case napi_array_expected:
+        napi_throw_error(env, "argument error", "Array expected");
+        return false;
+
+    case napi_generic_failure:
+        napi_throw_error(env, "argument error", "Generic failure");
+        return false;
+
+    case napi_pending_exception:
+        napi_throw_error(env, "argument error", "Pending exeption");
+        return false;
+
+    case napi_cancelled:
+        napi_throw_error(env, "argument error", "Cancelled");
+        return false;
+
+    case napi_escape_called_twice:
+        napi_throw_error(env, "argument error", "Escape called twice");
+        return false;
+
+    case napi_handle_scope_mismatch:
+        napi_throw_error(env, "argument error", "Scope mismatch");
+        return false;
+
+    case napi_callback_scope_mismatch:
+        napi_throw_error(env, "argument error", "Callback scope mismatch");
+        return false;
+
+    case napi_queue_full:
+        napi_throw_error(env, "argument error", "Napi queue full");
+        return false;
+
+    case napi_closing:
+        napi_throw_error(env, "argument error", "Closing");
+        return false;
+
+    case napi_bigint_expected:
+        napi_throw_error(env, "argument error", "Bigint expected");
+        return false;
+
+    case napi_date_expected:
+        napi_throw_error(env, "argument error", "Date expected");
+        return false;
+
+    case napi_arraybuffer_expected:
+        napi_throw_error(env, "argument error", "Arraybuffer expected");
+        return false;
+
+    case napi_detachable_arraybuffer_expected:
+        napi_throw_error(
+            env, "argument error", "Detatchable arraybuffer expected"
+        );
+        return false;
+
+    case napi_would_deadlock:  /* unused */
+    case napi_no_external_buffers_allowed:
+        napi_throw_error(env, "argument error", "No external buffers allowed");
+        return false;
+
+    case napi_cannot_run_js:
+        napi_throw_error(env, "argument error", "=D");
+        return false;
+
+    default:
+        napi_throw_error(
+            env, "napi error", "A new, unexpected error happened."
+        );
+        return false;
+    }
+
+    if (*argc < argc_min || *argc > argc_max) {
+        napi_throw_error(
+            env, "argument error", "Too many or too few arguments"
+        );    
+    }
+    return true;
+}
 
 /************
  * Comms init
@@ -27,34 +152,14 @@ napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
     napi_value this;
     size_t argc = MAX_ARGUMENTS;
     void* data = NULL;
-    napi_status status;
 
-    status = napi_get_cb_info(env, info, &argc, argv, &this, &data);
-    if (status != napi_ok) {
-        const napi_extended_error_info* error_info;
-        napi_get_last_error_info(env, &error_info);
-        char msg[MAX_LEN_ERROR] = {0};
-        snprintf(
-            msg, 
-            MAX_LEN_ERROR-1, 
-            "NAPI error: %s\n", 
-            error_info->error_message
-        );
-        napi_throw_error(
-            env, 
-            MODULE_FUNC_INFO_ERROR, 
-            msg
-        );
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1  // Take exactly 1 argument
+    );
+    if (!success) {
         return NULL;
     }
-    if (argc != 1) {
-        napi_throw_error(
-            env, 
-            "expected config index", 
-            "Must give device index (0-9) as argument."
-        );
-        return NULL;
-    }
+
     uint32_t device_ndx = 0;
     napi_get_value_uint32(env, argv[0], &device_ndx);
     VL53L5CX_Configuration* config = 
@@ -132,30 +237,19 @@ void register_vl53l5cx_comms_init(
 napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
     printf("comms is it alive called\n");
 
-    napi_value this_;
+    napi_value this;
     size_t argc = MAX_ARGUMENTS;
     void* data;
-    napi_status status;
     uint8_t is_alive = 0;
     napi_value argv[MAX_ARGUMENTS] = {NULL};
 
-    status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            "napi_get_cb_info error", 
-            "Happened in cb_vl53l5cx_is_alive"
-        );
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1
+    );
+    if (!success) {
         return NULL;
     }
-    if (argc != 1) {
-        napi_throw_error(
-            env, 
-            "expected config index", 
-            "Must give device index (0-9) as argument."
-        );
-        return NULL;
-    }
+
     uint32_t device_ndx = 0;
     napi_get_value_uint32(env, argv[0], &device_ndx);
 
@@ -224,30 +318,19 @@ void register_vl53l5cx_is_alive(
  */
 
  napi_value cb_vl53l5cx_start_ranging(napi_env env, napi_callback_info info) {
-    napi_value this_;
+    napi_value this;
     size_t argc = MAX_ARGUMENTS;
     void* data;
     napi_status status;
     napi_value argv[MAX_ARGUMENTS] = {NULL};
 
-    status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            "napi_get_cb_info error", 
-            "Happened in cb_vl53l5cx_start_ranging"
-        );
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1
+    );
+    if (!success) {
         return NULL;
     }
-    napi_valuetype type;
-    status = napi_typeof(env, argv[0], &type);
-    if (status != napi_ok || type != napi_number || argc != 1) {
-        napi_throw_error(
-            env,
-            "napi argument error",
-            "Expected exactly one number argument 0<=a<10."
-        );
-    }
+
     uint32_t device_ndx = 0;
     status = napi_get_value_uint32(env, argv[0], &device_ndx);
     if (status != napi_ok) {
@@ -309,28 +392,15 @@ void register_vl53l5cx_is_alive(
     napi_callback_info info
 ) {
     size_t argc = MAX_ARGUMENTS;
-    napi_value this_;
+    napi_value this;
     void* data;
-    napi_status status;
     napi_value ret_val;
     napi_value argv[MAX_ARGUMENTS] = {NULL};
 
-    status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            "napi_get_cb_info error", 
-            "Happened in cb_vl53l5cx_check_data_ready"
-        );
-        return NULL;
-    }
-
-    if (argc != 1) {
-        napi_throw_error(
-            env, 
-            "expected config index", 
-            "Must give device index (0-9) as argument. fn: napi_get_cb_info"
-        );
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1
+    );
+    if (!success) {
         return NULL;
     }
 
@@ -389,30 +459,18 @@ void register_vl53l5cx_is_alive(
  */
 
 napi_value cb_vl53l5cx_stop_ranging(napi_env env, napi_callback_info info) {
-    napi_value this_;
+    napi_value this;
     size_t argc = MAX_ARGUMENTS;
     void* data;
-    napi_status status;
-    uint8_t drv_status = 0;
     napi_value argv[MAX_ARGUMENTS] = {NULL};
 
-    status = napi_get_cb_info(env, info, &argc, NULL, &this_, &data);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            "napi_get_cb_info error", 
-            "Happened in cb_vl53l5cx_stop_ranging"
-        );
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1
+    );
+    if (!success) {
         return NULL;
     }
-    if (argc != 1) {
-        napi_throw_error(
-            env, 
-            "expected config index", 
-            "Must give device index (0-9) as argument."
-        );
-        return NULL;
-    }
+
     uint32_t device_ndx = 0;
     napi_get_value_uint32(env, argv[0], &device_ndx);
     VL53L5CX_Configuration* conf = 
@@ -466,27 +524,16 @@ napi_value cb_vl53l5cx_get_ranging_data(
     napi_env env,
     napi_callback_info info
 ) {
-    napi_value this_;
+    napi_value this;
     size_t argc = MAX_ARGUMENTS;
     void* data;
     napi_status status;
     napi_value argv[MAX_ARGUMENTS] = {NULL};
 
-    status = napi_get_cb_info(env, info, &argc, argv, &this_, &data);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            "napi_get_cb_info error", 
-            "Happened in cb_vl53l5cx_get_ranging_data"
-        );
-        return NULL;
-    }
-    if (argc != 1) {
-        napi_throw_error(
-            env, 
-            "expected config index", 
-            "Must give device index (0-9) as argument."
-        );
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1
+    );
+    if (!success) {
         return NULL;
     }
 

@@ -211,6 +211,7 @@ void register_vl53l5cx_comms_init(
             "initialization error", 
             "Could not create JS func cb_vl53l5cx_comms_init"
         );
+        return; // don't have anything to bind
     }
 
     status = napi_set_named_property(env, exports, name, fn);
@@ -301,6 +302,7 @@ void register_vl53l5cx_is_alive(
             MODULE_INIT_ERROR, 
             "Could not create JS func cb_vl53l5cx_is_alive"
         );
+        return;
     }
 
     status = napi_set_named_property(env, exports, name, fn);
@@ -371,6 +373,7 @@ void register_vl53l5cx_is_alive(
             MODULE_INIT_ERROR, 
             "Could not create JS func cb_vl53l5cx_start_ranging"
         );
+        return;
     }
 
     status = napi_set_named_property(env, exports, name, fn);
@@ -443,6 +446,7 @@ void register_vl53l5cx_is_alive(
             MODULE_INIT_ERROR, 
             "Could not create JS func vl53l5cx_check_data_ready"
         );
+        return;
     }
 
     status = napi_set_named_property(env, exports, name, fn);

@@ -18,11 +18,17 @@ extern const char* ERROR;
 
 extern const char* INIT_COMMS_ERROR;
 
+extern const char* NO_SENSOR;
+
 /**
  * Node-API side of errors.
  */
 extern const char* MODULE_INIT_ERROR;
-extern const char* MODULE_FUNC_ARGUMENT_ERROR;
-extern const char* MODULE_FUNC_INFO_ERROR;
+extern const char* ARGUMENT_ERROR;
+extern const char* INFO_ERROR;
+extern const char* VALUE_NAPI_ERROR;
+extern const char* NAMED_PROPERTY_NOT_SET;
+extern const char* ARRAY_VALUE_NOT_SET;
+extern const char* UNKNOWN_ERROR;
 
 #endif

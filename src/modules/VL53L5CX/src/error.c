@@ -14,5 +14,11 @@ const char* ERROR = "unknown generic error";
 const char* INIT_COMMS_ERROR = "connection error";
 
 const char* MODULE_INIT_ERROR = "error initializing module";
-const char* MODULE_FUNC_ARGUMENT_ERROR = "invalid arguments";
-const char* MODULE_FUNC_INFO_ERROR = "could not parse cb info";
+const char* ARGUMENT_ERROR = "invalid arguments";
+const char* INFO_ERROR = "could not parse cb info";
+
+const char* NO_SENSOR = "no sensor";
+const char* VALUE_NAPI_ERROR = "couldn't create napi value";
+const char* NAMED_PROPERTY_NOT_SET = "couldn't set named property";
+const char* ARRAY_VALUE_NOT_SET = "couldn't set array napi value";
+const char* UNKNOWN_ERROR = "unknown error";

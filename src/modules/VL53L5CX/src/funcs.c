@@ -33,106 +33,106 @@ bool parse_args(
         break;
 
     case napi_invalid_arg:
-        napi_throw_error(env, "argument error", "Invalid argument");
+        napi_throw_error(env, ARGUMENT_ERROR, "Invalid argument");
         return false;
 
     case napi_object_expected:
-        napi_throw_error(env, "argument error", "Object expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Object expected");
         return false;
 
     case napi_string_expected:
-        napi_throw_error(env, "argument error", "String expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "String expected");
     return false;
 
     case napi_name_expected:
-        napi_throw_error(env, "argument error", "Name expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Name expected");
         return false;
 
     case napi_function_expected:
-        napi_throw_error(env, "argument error", "Function expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Function expected");
         return false;
 
     case napi_number_expected:
-        napi_throw_error(env, "argument error", "Number expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Number expected");
         return false;
 
     case napi_boolean_expected:
-        napi_throw_error(env, "argument error", "Boolean expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Boolean expected");
         return false;
 
     case napi_array_expected:
-        napi_throw_error(env, "argument error", "Array expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Array expected");
         return false;
 
     case napi_generic_failure:
-        napi_throw_error(env, "argument error", "Generic failure");
+        napi_throw_error(env, ARGUMENT_ERROR, "Generic failure");
         return false;
 
     case napi_pending_exception:
-        napi_throw_error(env, "argument error", "Pending exeption");
+        napi_throw_error(env, ARGUMENT_ERROR, "Pending exeption");
         return false;
 
     case napi_cancelled:
-        napi_throw_error(env, "argument error", "Cancelled");
+        napi_throw_error(env, ARGUMENT_ERROR, "Cancelled");
         return false;
 
     case napi_escape_called_twice:
-        napi_throw_error(env, "argument error", "Escape called twice");
+        napi_throw_error(env, ARGUMENT_ERROR, "Escape called twice");
         return false;
 
     case napi_handle_scope_mismatch:
-        napi_throw_error(env, "argument error", "Scope mismatch");
+        napi_throw_error(env, ARGUMENT_ERROR, "Scope mismatch");
         return false;
 
     case napi_callback_scope_mismatch:
-        napi_throw_error(env, "argument error", "Callback scope mismatch");
+        napi_throw_error(env, ARGUMENT_ERROR, "Callback scope mismatch");
         return false;
 
     case napi_queue_full:
-        napi_throw_error(env, "argument error", "Napi queue full");
+        napi_throw_error(env, ARGUMENT_ERROR, "Napi queue full");
         return false;
 
     case napi_closing:
-        napi_throw_error(env, "argument error", "Closing");
+        napi_throw_error(env, ARGUMENT_ERROR, "Closing");
         return false;
 
     case napi_bigint_expected:
-        napi_throw_error(env, "argument error", "Bigint expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Bigint expected");
         return false;
 
     case napi_date_expected:
-        napi_throw_error(env, "argument error", "Date expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Date expected");
         return false;
 
     case napi_arraybuffer_expected:
-        napi_throw_error(env, "argument error", "Arraybuffer expected");
+        napi_throw_error(env, ARGUMENT_ERROR, "Arraybuffer expected");
         return false;
 
     case napi_detachable_arraybuffer_expected:
         napi_throw_error(
-            env, "argument error", "Detatchable arraybuffer expected"
+            env, ARGUMENT_ERROR, "Detatchable arraybuffer expected"
         );
         return false;
 
     case napi_would_deadlock:  /* unused */
     case napi_no_external_buffers_allowed:
-        napi_throw_error(env, "argument error", "No external buffers allowed");
+        napi_throw_error(env, ARGUMENT_ERROR, "No external buffers allowed");
         return false;
 
     case napi_cannot_run_js:
-        napi_throw_error(env, "argument error", "=D");
+        napi_throw_error(env, ARGUMENT_ERROR, "=D");
         return false;
 
     default:
         napi_throw_error(
-            env, "napi error", "A new, unexpected error happened."
+            env, UNKNOWN_ERROR, "A new, unexpected error happened."
         );
         return false;
     }
 
     if (*argc < argc_min || *argc > argc_max) {
         napi_throw_error(
-            env, "argument error", "Too many or too few arguments"
+            env, ARGUMENT_ERROR, "Too many or too few arguments"
         );
         return false;
     }
@@ -208,7 +208,7 @@ void register_vl53l5cx_comms_init(
     if (status != napi_ok) {
         napi_throw_error(
             env, 
-            "initialization error", 
+            MODULE_INIT_ERROR, 
             "Could not create JS func cb_vl53l5cx_comms_init"
         );
         return; // don't have anything to bind
@@ -218,7 +218,7 @@ void register_vl53l5cx_comms_init(
     if (status != napi_ok) {
         napi_throw_error(
             env,
-            "initialization error",
+            MODULE_INIT_ERROR,
             "Could not bind JS func cb_vl53l5cx_comms_init to the module"
         );
     }
@@ -272,7 +272,7 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
         );
         napi_throw_error(
             env,
-            "no such sensor",
+            NO_SENSOR,
             err
         );
     }
@@ -339,7 +339,7 @@ void register_vl53l5cx_is_alive(
     if (status != napi_ok) {
         napi_throw_error(
             env, 
-            "expected config index", 
+            ARGUMENT_ERROR, 
             "Must give device index (0-9) as argument. fn: cb_vl53l5cx_start_ranging"
         );
         return NULL;
@@ -564,8 +564,8 @@ napi_value cb_vl53l5cx_get_ranging_data(
     if (status != napi_ok) {
         napi_throw_error(
             env,
-            "couldn't create napi int32",
-            "fn: cb_vl53l5cx_get_ranging_data"
+            VALUE_NAPI_ERROR,
+            "Couldn't create an int32. fn: cb_vl53l5cx_get_ranging_data"
         );
         return NULL;
     }
@@ -578,8 +578,8 @@ napi_value cb_vl53l5cx_get_ranging_data(
     if (status != napi_ok) {
         napi_throw_error(
             env,
-            "couldn't create napi array",
-            "fn: cb_vl53l5cx_get_ranging_data"
+            VALUE_NAPI_ERROR,
+            "Couldn't create an array. fn: cb_vl53l5cx_get_ranging_data"
         );
         return NULL;
     }
@@ -592,8 +592,8 @@ napi_value cb_vl53l5cx_get_ranging_data(
         if (status != napi_ok) {
             napi_throw_error(
                 env,
-                "couldn't create napi object",
-                "fn: cb_vl53l5cx_get_ranging_data"
+                VALUE_NAPI_ERROR,
+                "Couldn't create napi object. fn: cb_vl53l5cx_get_ranging_data"
             );
             return NULL;
         }
@@ -604,8 +604,8 @@ napi_value cb_vl53l5cx_get_ranging_data(
         if (status != napi_ok) {
             napi_throw_error(
                 env,
-                "couldn't create napi object",
-                "fn: cb_vl53l5cx_get_ranging_data"
+                VALUE_NAPI_ERROR,
+                "Couldn't create napi object. fn: cb_vl53l5cx_get_ranging_data"
             );
             return NULL;
         }
@@ -622,8 +622,8 @@ napi_value cb_vl53l5cx_get_ranging_data(
         if (status != napi_ok) {
             napi_throw_error(
                 env,
-                "couldn't create napi int32",
-                "fn: cb_vl53l5cx_get_ranging_data"
+                VALUE_NAPI_ERROR,
+                "Couldn't create napi int32. fn: cb_vl53l5cx_get_ranging_data"
             );
             return NULL;
         }
@@ -636,7 +636,7 @@ napi_value cb_vl53l5cx_get_ranging_data(
         if (status != napi_ok) {
             napi_throw_error(
                 env,
-                "couldn't napi set named property",
+                NAMED_PROPERTY_NOT_SET,
                 "fn: cb_vl53l5cx_get_ranging_data"
             );
             return NULL;
@@ -654,8 +654,8 @@ napi_value cb_vl53l5cx_get_ranging_data(
         if (status != napi_ok) {
             napi_throw_error(
                 env,
-                "couldn't create napi uint32",
-                "fn: cb_vl53l5cx_get_ranging_data"
+                VALUE_NAPI_ERROR,
+                "Couldn't create napi uint32. fn: cb_vl53l5cx_get_ranging_data"
             );
             return NULL;
         }
@@ -663,7 +663,7 @@ napi_value cb_vl53l5cx_get_ranging_data(
         if (status != napi_ok) {
             napi_throw_error(
                 env,
-                "couldn't napi set named property",
+                NAMED_PROPERTY_NOT_SET,
                 "fn: cb_vl53l5cx_get_ranging_data"
             );
             return NULL;
@@ -674,7 +674,7 @@ napi_value cb_vl53l5cx_get_ranging_data(
         if (status != napi_ok) {
             napi_throw_error(
                 env,
-                "couldn't set napi array index value",
+                ARRAY_VALUE_NOT_SET,
                 "fn: cb_vl53l5cx_get_ranging_data"
             );
             return NULL;

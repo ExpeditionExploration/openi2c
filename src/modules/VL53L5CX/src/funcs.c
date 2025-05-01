@@ -1035,3 +1035,92 @@ void register_vl53l5cx_set_target_order(
         );
     }
 }
+
+napi_value cb_vl53l5cx_set_ranging_mode(napi_env env, napi_callback_info info) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 2, 2
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+    uint32_t mode;
+
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR,
+            "Invalid first argument for ..set_ranging_mode(cfg, mode)."
+        );
+        return NULL;
+    }
+    status = napi_get_value_uint32(env, argv[1], &mode);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR, 
+            "Invalid second argument for ..set_ranging_mode(cfg, mode)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    if (mode != VL53L5CX_RANGING_MODE_CONTINUOUS
+            && mode != VL53L5CX_RANGING_MODE_AUTONOMOUS) {
+        napi_throw_error(
+            env,
+            ARGUMENT_ERROR,
+            "Target order must be one of VL53L5CX_RANGING_MODE_* constants."
+        );
+        return NULL;
+    }
+
+    uint8_t res_status = vl53l5cx_set_ranging_mode(conf, (uint8_t)mode);
+    if (res_status) {
+        napi_throw_error(
+            env,
+            ERROR_CHANGING_SETTING,
+            "Couldn't change sensor mode."
+        );
+    }
+    return NULL;
+}
+void register_vl53l5cx_set_ranging_mode(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+) {
+    napi_value fn;
+    napi_status status;
+    const char* name = "vl53l5cx_set_ranging_mode";
+
+    status = napi_create_function(
+        env, name, strlen(name), cb_vl53l5cx_set_ranging_mode, conf, fn
+    );
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, MODULE_INIT_ERROR, 
+            "Could not create JS func vl53l5cx_set_ranging_mode"
+        );
+        return;
+    }
+
+    status = napi_set_named_property(env, exports, name, fn);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, MODULE_INIT_ERROR,
+            "Could not bind JS func vl53l5cx_set_ranging_mode to the module"
+        );
+    }
+}
+

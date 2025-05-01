@@ -58,7 +58,10 @@ export type VL53L5CX = {
    * Fetch scan data.
    * 
    * @param cfg 
-   * @returns 
+   * @returns {ScanData}
+   * 
+   * @throws `couldn't create napi value`, `unknown generic error`,
+   *  `couldn't set named property`, `couldn't set array napi value`
    */
   vl53l5cx_get_ranging_data: (cfg: number) => ScanData;
 
@@ -69,7 +72,7 @@ export type VL53L5CX = {
    * to be set.
    * 
    * @param cfg config slot
-   * @param resolution One of the VL53L5CX_RESOLUTION_* constants
+   * @param resolution One of the `VL53L5CX_RESOLUTION_*` constants
    * @returns Nothing
    * 
    * @throws `invalid arguments`, `change setting error`
@@ -91,7 +94,7 @@ export type VL53L5CX = {
    * **Must** be set after setting the resolution.
    * 
    * @param cfg cfg slot
-   * @param freq 
+   * @param freq Frequency in Hz
    * @returns undefined
    * 
    * @throws `invalid arguments`, `change setting error`
@@ -104,7 +107,7 @@ export type VL53L5CX = {
    * **Must** be set after setting the resolution.
    * 
    * @param cfg cfg slot
-   * @param ordering 
+   * @param ordering One of `VL53L5CX_TARGET_ORDER_*` constants.
    * @returns undefined
    * 
    * @throws `invalid arguments`, `change setting error`
@@ -112,4 +115,17 @@ export type VL53L5CX = {
   vl53l5cx_set_target_order: (cfg: number, ordering: number) => undefined;
   VL53L5CX_TARGET_ORDER_CLOSEST: number;
   VL53L5CX_TARGET_ORDER_STRONGEST: number;
+
+  /**
+   * Set ranging mode
+   * 
+   * @param cfg
+   * @mode One of `VL53L5CX_RANGING_MODE_*` constants.
+   * @returns undefined
+   * 
+   * @throws `invalid arguments`, `change setting error`
+   */
+  vl53l5cx_set_ranging_mode: (cfg: number, mode: number) => undefined;
+  VL53L5CX_RANGING_MODE_CONTINUOUS: number;
+  VL53L5CX_RANGING_MODE_AUTONOMOUS: number;
 };

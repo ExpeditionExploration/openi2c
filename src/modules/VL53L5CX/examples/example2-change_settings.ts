@@ -5,9 +5,18 @@ function example2() {
     vl53l5cx.vl53l5cx_comms_init(cfg);
 
     // Change resolution to 8x8
-    // Disabled till other necessary parameter setters have been written.
-    //vl53l5cx.vl53l5cx_set_resolution(cfg, vl53l5cx.VL53L5CX_RESOLUTION_8X8);
-    //vl53l5cx.vl53l5cx_set_ranging_frequency_hz(cfg, 6);
+    vl53l5cx.vl53l5cx_set_resolution(cfg, vl53l5cx.VL53L5CX_RESOLUTION_8X8);
+
+    /* Set ranging frequency to 6Hz.
+	 * Using 4x4, min frequency is 1Hz and max is 60Hz
+	 * Using 8x8, min frequency is 1Hz and max is 15Hz
+	 */
+    vl53l5cx.vl53l5cx_set_ranging_frequency_hz(cfg, 6);
+
+    /* Set target to closest */
+    vl53l5cx.vl53l5cx_set_target_order(
+        cfg, vl53l5cx.VL53L5CX_TARGET_ORDER_CLOSEST
+    );
     vl53l5cx.vl53l5cx_start_ranging(cfg);
     for (let i = 0; i < 10; i++) {
         while (!vl53l5cx.vl53l5cx_check_data_ready(cfg)) {
@@ -18,9 +27,7 @@ function example2() {
         const data = vl53l5cx.vl53l5cx_get_ranging_data(cfg);
         console.log(`Chip temperature: ${data.chipTempC}C degrees`);
         for (let zone of data.scanZones) {
-            if (zone) { //TODO: Change C code to make arr len reflect zone count
-                console.log(zone);
-            }
+            console.log(zone);
         }
     }
 }

@@ -574,7 +574,20 @@ napi_value cb_vl53l5cx_get_ranging_data(
     /* Scan zones */
     napi_value scan_zones = NULL;
     /* max. 64 zones */
-    status = napi_create_array_with_length(env, 64, &scan_zones);
+    uint8_t resolution;
+    uint8_t rm_status = vl53l5cx_get_ranging_mode(config, &resolution);
+    if (rm_status) {
+        napi_throw_error(
+            env, ERROR, 
+            "Couldn't get ranging mode in fn: cb_vl53l5cx_get_ranging_data"
+        );
+        return NULL;
+    }
+    status = napi_create_array_with_length(
+        env,
+        (resolution == VL53L5CX_RESOLUTION_4X4) ? 16 : 64, /* 4*4 or 8*8 */
+         &scan_zones
+    );
     if (status != napi_ok) {
         napi_throw_error(
             env,
@@ -585,7 +598,11 @@ napi_value cb_vl53l5cx_get_ranging_data(
     }
 
     /* Populate scan zones array */
-    for (uint32_t i = 0; i < 16; i++) {  // TODO: Accommodate 8x8 scan mode.
+    for (
+        uint32_t i = 0; 
+        i < ((resolution == VL53L5CX_RESOLUTION_4X4) ? 16 : 64); 
+        i++
+    ) {
         /* Create the zone */
         napi_value zone = NULL;
         status = napi_create_object(env, &zone);
@@ -917,6 +934,104 @@ void register_vl53l5cx_set_ranging_frequency_hz(
             env,
             MODULE_INIT_ERROR,
         "Could not bind JS func vl53l5cx_set_ranging_frequency_hz to the module"
+        );
+    }
+}
+
+/** 
+ * Target order selection. 
+ */
+napi_value cb_vl53l5cx_set_target_order(napi_env env, napi_callback_info info) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 2, 2
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+    uint32_t target_order;
+
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR,
+            "Invalid first argument for ..set_target_order(cfg, resolution)."
+        );
+        return NULL;
+    }
+    status = napi_get_value_uint32(env, argv[1], &target_order);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR, 
+            "Invalid second argument for ..set_target_order(cfg, resolution)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    if (target_order != VL53L5CX_TARGET_ORDER_CLOSEST
+            && target_order != VL53L5CX_TARGET_ORDER_STRONGEST) {
+        napi_throw_error(
+            env,
+            ARGUMENT_ERROR,
+            "Target order must be one of VL53L5CX_TARGET_ORDER_* constants."
+        );
+        return NULL;
+    }
+
+    uint8_t res_status = vl53l5cx_set_target_order(conf, (uint8_t)target_order);
+    if (res_status) {
+        napi_throw_error(
+            env,
+            ERROR_CHANGING_SETTING,
+            "Couldn't change sensor target ordering."
+        );
+    }
+    return NULL;
+}
+void register_vl53l5cx_set_target_order(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+) {
+    napi_value fn;
+    napi_status status;
+    const char* name = "vl53l5cx_set_target_order";
+
+    status = napi_create_function(
+        env,
+        name, 
+        strlen(name),
+        cb_vl53l5cx_set_target_order,
+        conf, 
+        &fn
+    );
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            MODULE_INIT_ERROR, 
+            "Could not create JS func vl53l5cx_set_target_order"
+        );
+        return;
+    }
+
+    status = napi_set_named_property(env, exports, name, fn);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env,
+            MODULE_INIT_ERROR,
+            "Could not bind JS func vl53l5cx_set_target_order to the module"
         );
     }
 }

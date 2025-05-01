@@ -112,4 +112,16 @@ void register_vl53l5cx_set_ranging_frequency_hz(
     napi_env env,
     napi_value exports
 );
+
+/**
+ * Strongest or closest target selection
+ * 
+ * Takes config slot and order as arguments.
+ */
+napi_value cb_vl53l5cx_set_target_order(napi_env, napi_callback_info);
+void register_vl53l5cx_set_target_order(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+);
 #endif

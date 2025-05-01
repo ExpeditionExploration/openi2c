@@ -215,6 +215,7 @@ napi_value init(napi_env env, napi_value exports) {
     register_vl53l5cx_get_ranging_data(CONFS, env, exports);
     register_vl53l5cx_set_resolution(CONFS, env, exports);
     register_vl53l5cx_set_ranging_frequency_hz(CONFS, env, exports);
+    register_vl53l5cx_set_target_order(CONFS, env, exports);
 
     return exports;
 }

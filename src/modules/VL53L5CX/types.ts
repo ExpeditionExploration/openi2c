@@ -97,4 +97,19 @@ export type VL53L5CX = {
    * @throws `invalid arguments`, `change setting error`
    */
   vl53l5cx_set_ranging_frequency_hz: (cfg: number, freq: number) => undefined;
+
+  /**
+   * Set target ordering
+   * 
+   * **Must** be set after setting the resolution.
+   * 
+   * @param cfg cfg slot
+   * @param ordering 
+   * @returns undefined
+   * 
+   * @throws `invalid arguments`, `change setting error`
+   */
+  vl53l5cx_set_target_order: (cfg: number, ordering: number) => undefined;
+  VL53L5CX_TARGET_ORDER_CLOSEST: number;
+  VL53L5CX_TARGET_ORDER_STRONGEST: number;
 };

@@ -13,9 +13,7 @@ function example1() {
         const data = vl53l5cx.vl53l5cx_get_ranging_data(cfg);
         console.log(`Chip temperature: ${data.chipTempC}C degrees`);
         for (let zone of data.scanZones) {
-            if (zone) { // TODO: Change C code to make arr len reflect zone count
-                console.log(zone);
-            }
+            console.log(zone);
         }
     }
 }

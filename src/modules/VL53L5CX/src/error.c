@@ -22,3 +22,5 @@ const char* VALUE_NAPI_ERROR = "couldn't create napi value";
 const char* NAMED_PROPERTY_NOT_SET = "couldn't set named property";
 const char* ARRAY_VALUE_NOT_SET = "couldn't set array napi value";
 const char* UNKNOWN_ERROR = "unknown error";
+
+const char* ERROR_CHANGING_SETTING = "change setting error";

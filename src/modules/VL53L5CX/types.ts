@@ -61,4 +61,27 @@ export type VL53L5CX = {
    * @returns 
    */
   vl53l5cx_get_ranging_data: (cfg: number) => ScanData;
+
+  /**
+   * Set scan resolution.
+   * 
+   * Other sensor parameters depend on this, so this **must** be the first one
+   * to be set.
+   * 
+   * @param cfg config slot
+   * @param resolution One of the VL53L5CX_RESOLUTION_* constants
+   * @returns Nothing
+   * 
+   * @throws `invalid arguments`, `change setting error`
+   */
+  vl53l5cx_set_resolution: (cfg: number, resolution: number) => undefined;
+
+  /**
+   *  Used as parameter for vl53l5cx_set_resolution(..)
+   */
+  VL53L5CX_RESOLUTION_4X4: number;
+  /**
+   *  Used as parameter for vl53l5cx_set_resolution(..)
+   */
+  VL53L5CX_RESOLUTION_8X8: number;
 };

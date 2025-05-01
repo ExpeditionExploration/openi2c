@@ -89,4 +89,15 @@ void register_vl53l5cx_get_ranging_data(
     napi_value exports
 );
 
+/**
+ * Set resolution
+ * 
+ * Takes config slot and resolution as arguments.
+ */
+napi_value cb_vl53l5cx_set_resolution(napi_env, napi_callback_info);
+void register_vl53l5cx_set_resolution(
+    VL53L5CX_Configuration* conf, 
+    napi_env env, 
+    napi_value exports
+);
 #endif

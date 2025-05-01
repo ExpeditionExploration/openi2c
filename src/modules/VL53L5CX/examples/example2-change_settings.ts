@@ -6,7 +6,8 @@ function example2() {
 
     // Change resolution to 8x8
     // Disabled till other necessary parameter setters have been written.
-    // vl53l5cx.vl53l5cx_set_resolution(cfg, vl53l5cx.VL53L5CX_RESOLUTION_8X8);
+    //vl53l5cx.vl53l5cx_set_resolution(cfg, vl53l5cx.VL53L5CX_RESOLUTION_8X8);
+    //vl53l5cx.vl53l5cx_set_ranging_frequency_hz(cfg, 6);
     vl53l5cx.vl53l5cx_start_ranging(cfg);
     for (let i = 0; i < 10; i++) {
         while (!vl53l5cx.vl53l5cx_check_data_ready(cfg)) {

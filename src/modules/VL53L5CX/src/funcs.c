@@ -814,5 +814,109 @@ void register_vl53l5cx_set_resolution(
             "Could not bind JS func vl53l5cx_set_resolution to the module"
         );
     }
+}
 
+napi_value cb_vl53l5cx_set_ranging_frequency_hz(
+    napi_env env, 
+    napi_callback_info info
+) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 2, 2
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+    uint32_t frequency;
+
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR, 
+            "Invalid first argument for ..set_frequency_hz(cfg, resolution)."
+        );
+        return NULL;
+    }
+    status = napi_get_value_uint32(env, argv[1], &frequency);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR, 
+            "Invalid second argument for ..set_frequency_hz(cfg, resolution)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    // Need resolution to check the input frequency is sane.
+    uint8_t resolution = 0;
+    vl53l5cx_get_resolution(conf, &resolution);
+    if (((VL53L5CX_RESOLUTION_8X8 == (uint8_t) resolution)
+        && (frequency < 1 || frequency > 15))
+        ||
+        ((VL53L5CX_RESOLUTION_4X4 == (uint8_t) resolution)
+        && (frequency < 1 || frequency > 60))) {
+        napi_throw_error(
+            env,
+            ARGUMENT_ERROR,
+            "Impossible frequency for the given resolution."
+        );
+        return NULL;
+    }
+
+    uint8_t res_status = vl53l5cx_set_ranging_frequency_hz(
+        conf, (uint8_t) frequency);
+    if (res_status) {
+        napi_throw_error(
+            env,
+            ERROR_CHANGING_SETTING,
+            "Couldn't change sensing frequency."
+        );
+    }
+    return NULL;
+}
+void register_vl53l5cx_set_ranging_frequency_hz(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+) {
+    napi_value fn;
+    napi_status status;
+    const char* name = "vl53l5cx_set_ranging_frequency_hz";
+
+    status = napi_create_function(
+        env,
+        name, 
+        strlen(name),
+        cb_vl53l5cx_set_ranging_frequency_hz,
+        conf, 
+        &fn
+    );
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            MODULE_INIT_ERROR, 
+            "Could not create JS func vl53l5cx_set_ranging_frequency_hz"
+        );
+        return;
+    }
+
+    status = napi_set_named_property(env, exports, name, fn);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env,
+            MODULE_INIT_ERROR,
+        "Could not bind JS func vl53l5cx_set_ranging_frequency_hz to the module"
+        );
+    }
 }

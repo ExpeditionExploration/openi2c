@@ -84,4 +84,17 @@ export type VL53L5CX = {
    *  Used as parameter for vl53l5cx_set_resolution(..)
    */
   VL53L5CX_RESOLUTION_8X8: number;
+
+  /**
+   * Set ranging frequency
+   * 
+   * **Must** be set after setting the resolution.
+   * 
+   * @param cfg cfg slot
+   * @param freq 
+   * @returns undefined
+   * 
+   * @throws `invalid arguments`, `change setting error`
+   */
+  vl53l5cx_set_ranging_frequency_hz: (cfg: number, freq: number) => undefined;
 };

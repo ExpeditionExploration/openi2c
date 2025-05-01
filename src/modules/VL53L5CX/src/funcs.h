@@ -100,4 +100,16 @@ void register_vl53l5cx_set_resolution(
     napi_env env, 
     napi_value exports
 );
+
+/**
+ * Set scanning frequency
+ * 
+ * Takes config slot and frequency as arguments.
+ */
+napi_value cb_vl53l5cx_set_ranging_frequency_hz(napi_env, napi_callback_info);
+void register_vl53l5cx_set_ranging_frequency_hz(
+    VL53L5CX_Configuration* conf,
+    napi_env env,
+    napi_value exports
+);
 #endif

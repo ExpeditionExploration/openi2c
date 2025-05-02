@@ -532,6 +532,7 @@ napi_value cb_vl53l5cx_get_ranging_data(
         }
         #endif
 
+        // Number of targets in zone
         uint8_t targets_for_this_zone = results.nb_target_detected[i];
         napi_value targets;
         status = napi_create_uint32(
@@ -543,7 +544,23 @@ napi_value cb_vl53l5cx_get_ranging_data(
             return NULL;
         }
         status = napi_set_named_property(
-            env, zone, "nb_target_detected", targets);
+            env, zone, "nbTargetDetected", targets);
+        if (status != napi_ok) {
+            napi_throw_error(
+                env, NAMED_PROPERTY_NOT_SET, "fn: get_ranging_data");
+            return NULL;
+        }
+
+        // Ambient per spad
+        uint32_t ambient = results.ambient_per_spad[i];
+        napi_value n_ambient;
+        status = napi_create_uint32(env, ambient, &n_ambient);
+        if (status != napi_ok) {
+            napi_throw_error(env, VALUE_NAPI_ERROR, "fn: get_ranging_data");
+            return NULL;
+        }
+        status = napi_set_named_property(
+            env, zone, "ambientPerSpad", n_ambient);
         if (status != napi_ok) {
             napi_throw_error(
                 env, NAMED_PROPERTY_NOT_SET, "fn: get_ranging_data");

@@ -1,4 +1,9 @@
-
+export type ScanTarget = {
+  targetStatus: number,
+  distanceMillimeters: number,
+  signalPerSpad: number,
+  rangeSigmaMillimeters: number,
+}
 export type ScanZone = {
     zoneIndex: number;
     distanceMillimeters: number;
@@ -6,7 +11,16 @@ export type ScanZone = {
     /**
      * Targets in zone
      */ 
-    nb_target_detected: number;
+    nbTargetDetected: number;
+    /**
+     * kcps
+     */
+    ambientPerSpad: number;
+    /**
+     * Number of spads enabled
+     */
+    nbSpadsEnabled: number;
+    targetData: ScanTarget[];
 }
 export type ScanData = {
     chipTempC: number;

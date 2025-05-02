@@ -148,7 +148,7 @@ bool register_fn(
     char error_msg[MAX_LEN_ERROR] = {0};
 
     status = napi_create_function(
-        env, fn_name, strlen(fn_name), cb, &conf, &fn
+        env, fn_name, strlen(fn_name), cb, conf, &fn
     );
     if (status != napi_ok) {
         snprintf(error_msg, MAX_LEN_ERROR-1,
@@ -182,7 +182,6 @@ bool register_fn(
 /// @param info Device addr as optional arg
 /// @return nothing
 napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
-    printf("comms init called\n");
     napi_value argv[MAX_ARGUMENTS] = {NULL};
     napi_value this;
     size_t argc = MAX_ARGUMENTS;
@@ -232,8 +231,6 @@ napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
 /// @param info 
 /// @return Nothing
 napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
-    printf("comms is it alive called\n");
-
     napi_value this;
     size_t argc = MAX_ARGUMENTS;
     void* data;
@@ -424,20 +421,21 @@ napi_value cb_vl53l5cx_get_ranging_data(
 
     /* Scan zones */
     napi_value scan_zones = NULL;
-    /* max. 64 zones */
     uint8_t resolution;
-    uint8_t rm_status = vl53l5cx_get_ranging_mode(config, &resolution);
+    uint8_t rm_status = vl53l5cx_get_resolution(config, &resolution);
+    // If resolution is not set to the device, it defaults to 16 zones.
+    if (!resolution) resolution = VL53L5CX_RESOLUTION_4X4;
     if (rm_status) {
         napi_throw_error(
             env, ERROR, 
-            "Couldn't get ranging mode in fn: cb_vl53l5cx_get_ranging_data"
+        "Couldn't get ranging resolution in fn: cb_vl53l5cx_get_ranging_data"
         );
         return NULL;
     }
     status = napi_create_array_with_length(
         env,
-        (resolution == VL53L5CX_RESOLUTION_4X4) ? 16 : 64, /* 4*4 or 8*8 */
-         &scan_zones
+        resolution, /* 4*4 or 8*8 */
+        &scan_zones
     );
     if (status != napi_ok) {
         napi_throw_error(
@@ -449,11 +447,7 @@ napi_value cb_vl53l5cx_get_ranging_data(
     }
 
     /* Populate scan zones array */
-    for (
-        uint32_t i = 0; 
-        i < ((resolution == VL53L5CX_RESOLUTION_4X4) ? 16 : 64); 
-        i++
-    ) {
+    for (uint32_t i = 0; i < resolution; i++) {
         /* Create the zone */
         napi_value zone = NULL;
         status = napi_create_object(env, &zone);
@@ -803,6 +797,46 @@ napi_value cb_vl53l5cx_set_ranging_mode(napi_env env, napi_callback_info info) {
     }
 
     uint8_t res_status = vl53l5cx_set_ranging_mode(conf, (uint8_t)mode);
+    if (res_status) {
+        napi_throw_error(
+            env,
+            ERROR_CHANGING_SETTING,
+            "Couldn't change sensor mode."
+        );
+    }
+    return NULL;
+}
+
+napi_value cb_vl53l5cx_init(napi_env env, napi_callback_info info) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR,
+            "Invalid first argument for init(cfg)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    uint8_t res_status = vl53l5cx_init(conf);
     if (res_status) {
         napi_throw_error(
             env,

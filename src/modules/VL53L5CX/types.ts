@@ -128,4 +128,12 @@ export type VL53L5CX = {
   set_ranging_mode: (cfg: number, mode: number) => undefined;
   VL53L5CX_RANGING_MODE_CONTINUOUS: number;
   VL53L5CX_RANGING_MODE_AUTONOMOUS: number;
+
+  /**
+   * Initialize device
+   * 
+   * @param cfg conf slot
+   * @returns undefined
+   */
+  init: (cfg: number) => undefined;
 };

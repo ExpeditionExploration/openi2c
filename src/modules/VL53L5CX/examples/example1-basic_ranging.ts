@@ -2,13 +2,10 @@ import { vl53l5cx } from "..";
 
 function example1() {
     const cfg = 0;
-    vl53l5cx.comms_init(cfg);
+    vl53l5cx.comms_init(cfg); // init comms
+    vl53l5cx.init(cfg); // init device
     vl53l5cx.start_ranging(cfg);
 
-    // vl53l5cx.set_resolution(cfg, vl53l5cx.VL53L5CX_RESOLUTION_4X4); // default
-    // vl53l5cx.set_ranging_frequency_hz(cfg, 5);
-    // vl53l5cx.set_target_order(cfg, vl53l5cx.VL53L5CX_TARGET_ORDER_CLOSEST);
-    // vl53l5cx.start_ranging(cfg);
     for (let i = 0; i < 10; i++) {
         while (!vl53l5cx.check_data_ready(cfg)) {
             const sab = new SharedArrayBuffer(4);
@@ -21,6 +18,7 @@ function example1() {
             console.log(zone);
         }
     }
+    vl53l5cx.stop_ranging(cfg);
 }
 
 example1()

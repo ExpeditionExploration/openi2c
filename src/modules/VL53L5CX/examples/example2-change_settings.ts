@@ -3,6 +3,7 @@ import { vl53l5cx } from "..";
 function example2() {
     const cfg = 0;
     vl53l5cx.comms_init(cfg);
+    vl53l5cx.init(cfg); // init device
 
     // Change resolution to 8x8
     vl53l5cx.set_resolution(cfg, vl53l5cx.VL53L5CX_RESOLUTION_8X8);
@@ -30,6 +31,7 @@ function example2() {
             console.log(zone);
         }
     }
+    vl53l5cx.stop_ranging(cfg);
 }
 
 example2()

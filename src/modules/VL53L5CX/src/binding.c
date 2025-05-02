@@ -224,6 +224,7 @@ napi_value init(napi_env env, napi_value exports) {
         cb_vl53l5cx_set_target_order);
     register_fn(CONFS, env, exports, "set_ranging_mode", 
         cb_vl53l5cx_set_ranging_mode);
+    register_fn(CONFS, env, exports, "init", cb_vl53l5cx_init);
     
 
     return exports;

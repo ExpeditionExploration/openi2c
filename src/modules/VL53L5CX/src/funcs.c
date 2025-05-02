@@ -567,6 +567,22 @@ napi_value cb_vl53l5cx_get_ranging_data(
             return NULL;
         }
 
+        // Number of spads enabled
+        uint32_t num_spads = results.nb_spads_enabled[i];
+        napi_value n_num_spads;
+        status = napi_create_uint32(env, num_spads, &n_num_spads);
+        if (status != napi_ok) {
+            napi_throw_error(env, VALUE_NAPI_ERROR, "fn: get_ranging_data");
+            return NULL;
+        }
+        status = napi_set_named_property(
+            env, zone, "nbSpadsEnabled", n_num_spads);
+        if (status != napi_ok) {
+            napi_throw_error(
+                env, NAMED_PROPERTY_NOT_SET, "fn: get_ranging_data");
+            return NULL;
+        }
+
         /* Finally add the zone element to the zones array */
         status = napi_set_element(env, scan_zones, i, zone);
         if (status != napi_ok) {

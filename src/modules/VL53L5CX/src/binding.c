@@ -225,6 +225,8 @@ napi_value init(napi_env env, napi_value exports) {
     register_fn(CONFS, env, exports, "set_ranging_mode", 
         cb_vl53l5cx_set_ranging_mode);
     register_fn(CONFS, env, exports, "init", cb_vl53l5cx_init);
+    register_fn(CONFS, env, exports, "get_integration_time_ms", 
+        cb_vl53l5cx_get_integration_time_ms);
     
 
     return exports;

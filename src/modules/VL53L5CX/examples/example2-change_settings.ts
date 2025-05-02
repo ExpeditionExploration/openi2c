@@ -18,6 +18,8 @@ function example2() {
     vl53l5cx.set_target_order(
         cfg, vl53l5cx.VL53L5CX_TARGET_ORDER_CLOSEST
     );
+    console.log(`Integration time: ${vl53l5cx.get_integration_time_ms(cfg)}ms`)
+
     vl53l5cx.start_ranging(cfg);
     for (let i = 0; i < 10; i++) {
         while (!vl53l5cx.check_data_ready(cfg)) {

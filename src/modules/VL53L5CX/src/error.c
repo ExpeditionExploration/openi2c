@@ -24,3 +24,4 @@ const char* ARRAY_VALUE_NOT_SET = "couldn't set array napi value";
 const char* UNKNOWN_ERROR = "unknown error";
 
 const char* ERROR_CHANGING_SETTING = "change setting error";
+const char* ERROR_GETTING_VALUE = "can't read value from sensor";

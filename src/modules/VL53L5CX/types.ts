@@ -136,4 +136,15 @@ export type VL53L5CX = {
    * @returns undefined
    */
   init: (cfg: number) => undefined;
+
+  /**
+   * 
+   * @param cfg Get integration time of a scan frame.
+   * @returns Time in ms
+   * 
+   * @throws `invalid arguments`,
+   *         `can't read value from sensor`, 
+   *         `couldn't create napi value`
+   */
+  get_integration_time_ms: (cfg: number) => number;
 };

@@ -20,6 +20,7 @@ extern const char* INIT_COMMS_ERROR;
 extern const char* NO_SENSOR;
 
 extern const char* ERROR_CHANGING_SETTING;
+extern const char* ERROR_GETTING_VALUE;
 
 
 /**

@@ -139,6 +139,40 @@ bool parse_args(
     return true;
 }
 
+bool register_fn(
+    VL53L5CX_Configuration* conf, napi_env env, napi_value exports,
+    const char* fn_name, napi_callback cb
+) {
+    napi_value fn;
+    napi_status status;
+    char error_msg[MAX_LEN_ERROR] = {0};
+
+    status = napi_create_function(
+        env, fn_name, strlen(fn_name), cb, &conf, &fn
+    );
+    if (status != napi_ok) {
+        snprintf(error_msg, MAX_LEN_ERROR-1,
+            "Could not create JS func %s", fn_name);
+        napi_throw_error(
+            env, MODULE_INIT_ERROR, 
+            error_msg
+        );
+        return false;
+    }
+
+    status = napi_set_named_property(env, exports, fn_name, fn);
+    if (status != napi_ok) {
+        snprintf(error_msg, MAX_LEN_ERROR-1,
+            "Could not bind JS func %s to the module", fn_name);
+        napi_throw_error(
+            env, MODULE_INIT_ERROR,
+            error_msg
+        );
+        return false;
+    }
+    return true;
+}
+
 /************
  * Comms init
  */
@@ -183,45 +217,6 @@ napi_value cb_vl53l5cx_comms_init(napi_env env, napi_callback_info info) {
         );
     }
     return NULL;
-}
-
-void register_vl53l5cx_comms_init(
-    VL53L5CX_Configuration* platform,
-    napi_env env,
-    napi_value exports
-) {
-    printf("plt addr: %p\n", platform);
-
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_comms_init";
-
-    napi_callback cb = cb_vl53l5cx_comms_init;
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb,
-        platform, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func cb_vl53l5cx_comms_init"
-        );
-        return; // don't have anything to bind
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-            "Could not bind JS func cb_vl53l5cx_comms_init to the module"
-        );
-    }
 }
 
 
@@ -279,42 +274,6 @@ napi_value cb_vl53l5cx_is_alive(napi_env env, napi_callback_info info) {
     return NULL;
 }
 
-void register_vl53l5cx_is_alive(
-    VL53L5CX_Configuration* conf,
-    napi_env env, 
-    napi_value exports
-) {
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_is_alive";
-
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb_vl53l5cx_is_alive,
-        conf, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func cb_vl53l5cx_is_alive"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-            "Could not bind JS func cb_vl53l5cx_is_alive to the module"
-        );
-    }
-}
-
 
 /***************
  * Start ranging
@@ -351,41 +310,6 @@ void register_vl53l5cx_is_alive(
     return NULL;
  }
 
- void register_vl53l5cx_start_ranging(
-    VL53L5CX_Configuration* conf,
-    napi_env env,
-    napi_value exports
- ) {
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_start_ranging";
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb_vl53l5cx_start_ranging,
-        conf, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func cb_vl53l5cx_start_ranging"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-            "Could not bind JS func cb_vl53l5cx_start_ranging to the module"
-        );
-    }
-}
-
 
 /**
  * vl53l5cx_check_data_ready
@@ -420,43 +344,6 @@ void register_vl53l5cx_is_alive(
         : napi_get_boolean(env, false, &ret_val);
 
     return ret_val;
- }
-
- void register_vl53l5cx_check_data_ready(
-    VL53L5CX_Configuration* conf,
-    napi_env env,
-    napi_value exports
- ) {
-    napi_value fn;
-    napi_status status;
-    // In the driver the chip code is in capital letters.
-    const char* name = "vl53l5cx_check_data_ready";
-
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb_vl53l5cx_check_data_ready,
-        conf, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func vl53l5cx_check_data_ready"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-            "Could not bind JS func vl53l5cx_check_data_ready to the module"
-        );
-    }
 }
 
 /**
@@ -485,42 +372,6 @@ napi_value cb_vl53l5cx_stop_ranging(napi_env env, napi_callback_info info) {
     vl53l5cx_stop_ranging(conf);
     return NULL;
 }
-void register_vl53l5cx_stop_ranging(
-    VL53L5CX_Configuration* conf,
-    napi_env env,
-    napi_value exports
-) {
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_stop_ranging";
-
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb_vl53l5cx_stop_ranging,
-        conf, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func vl53l5cx_stop_ranging"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-            "Could not bind JS func vl53l5cx_stop_ranging to the module"
-        );
-    }
-}
-
 
 /**
  * Get ranging data
@@ -702,42 +553,10 @@ napi_value cb_vl53l5cx_get_ranging_data(
     napi_set_named_property(env, ret_results, "scanZones", scan_zones);
     return ret_results;
 }
-void register_vl53l5cx_get_ranging_data(
-    VL53L5CX_Configuration* conf,
-    napi_env env,
-    napi_value exports
-) {
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_get_ranging_data";
 
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb_vl53l5cx_get_ranging_data,
-        conf, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func vl53l5cx_get_ranging_data"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-            "Could not bind JS func vl53l5cx_get_ranging_data to the module"
-        );
-    }
-}
-
+/**
+ * Set scanning resolution
+ */
 napi_value cb_vl53l5cx_set_resolution(napi_env env, napi_callback_info info) {
     napi_value this;
     size_t argc = MAX_ARGUMENTS;
@@ -797,42 +616,10 @@ napi_value cb_vl53l5cx_set_resolution(napi_env env, napi_callback_info info) {
     }
     return NULL;
 }
-void register_vl53l5cx_set_resolution(
-    VL53L5CX_Configuration* conf, 
-    napi_env env, 
-    napi_value exports
-) {
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_set_resolution";
 
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb_vl53l5cx_set_resolution,
-        conf, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func vl53l5cx_set_resolution"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-            "Could not bind JS func vl53l5cx_set_resolution to the module"
-        );
-    }
-}
-
+/**
+ * Set scanning frequency
+ */
 napi_value cb_vl53l5cx_set_ranging_frequency_hz(
     napi_env env, 
     napi_callback_info info
@@ -902,41 +689,6 @@ napi_value cb_vl53l5cx_set_ranging_frequency_hz(
     }
     return NULL;
 }
-void register_vl53l5cx_set_ranging_frequency_hz(
-    VL53L5CX_Configuration* conf,
-    napi_env env,
-    napi_value exports
-) {
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_set_ranging_frequency_hz";
-
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb_vl53l5cx_set_ranging_frequency_hz,
-        conf, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func vl53l5cx_set_ranging_frequency_hz"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-        "Could not bind JS func vl53l5cx_set_ranging_frequency_hz to the module"
-        );
-    }
-}
 
 /** 
  * Target order selection. 
@@ -1000,41 +752,6 @@ napi_value cb_vl53l5cx_set_target_order(napi_env env, napi_callback_info info) {
     }
     return NULL;
 }
-void register_vl53l5cx_set_target_order(
-    VL53L5CX_Configuration* conf,
-    napi_env env,
-    napi_value exports
-) {
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_set_target_order";
-
-    status = napi_create_function(
-        env,
-        name, 
-        strlen(name),
-        cb_vl53l5cx_set_target_order,
-        conf, 
-        &fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, 
-            MODULE_INIT_ERROR, 
-            "Could not create JS func vl53l5cx_set_target_order"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env,
-            MODULE_INIT_ERROR,
-            "Could not bind JS func vl53l5cx_set_target_order to the module"
-        );
-    }
-}
 
 napi_value cb_vl53l5cx_set_ranging_mode(napi_env env, napi_callback_info info) {
     napi_value this;
@@ -1095,32 +812,3 @@ napi_value cb_vl53l5cx_set_ranging_mode(napi_env env, napi_callback_info info) {
     }
     return NULL;
 }
-void register_vl53l5cx_set_ranging_mode(
-    VL53L5CX_Configuration* conf,
-    napi_env env,
-    napi_value exports
-) {
-    napi_value fn;
-    napi_status status;
-    const char* name = "vl53l5cx_set_ranging_mode";
-
-    status = napi_create_function(
-        env, name, strlen(name), cb_vl53l5cx_set_ranging_mode, conf, fn
-    );
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, MODULE_INIT_ERROR, 
-            "Could not create JS func vl53l5cx_set_ranging_mode"
-        );
-        return;
-    }
-
-    status = napi_set_named_property(env, exports, name, fn);
-    if (status != napi_ok) {
-        napi_throw_error(
-            env, MODULE_INIT_ERROR,
-            "Could not bind JS func vl53l5cx_set_ranging_mode to the module"
-        );
-    }
-}
-

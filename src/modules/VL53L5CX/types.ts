@@ -20,7 +20,7 @@ export type VL53L5CX = {
    * @returns nothing
    * @throws errors if something went awry
    */
-  vl53l5cx_comms_init: (cfg: number) => undefined;
+  comms_init: (cfg: number) => undefined;
 
   /**
    * Check if sensor is alive.
@@ -28,7 +28,7 @@ export type VL53L5CX = {
    * @returns nothing
    * @throws errors if something went awry
    */
-  vl53l5cx_is_alive: (cfg: number) => undefined;
+  is_alive: (cfg: number) => undefined;
 
   /**
    * Check if data is ready to be fetched.
@@ -36,7 +36,7 @@ export type VL53L5CX = {
    * @return true
    * @throws errors if something went awry
    */
-  vl53l5cx_check_data_ready: (cfg: number) => boolean;
+  check_data_ready: (cfg: number) => boolean;
 
   /**
    * Start ranging
@@ -44,7 +44,7 @@ export type VL53L5CX = {
    * @return nothing
    * @throws errors if something went awry
    */
-  vl53l5cx_start_ranging: (cfg: number) => undefined;
+  start_ranging: (cfg: number) => undefined;
 
   /**
    * Stop ranging
@@ -52,7 +52,7 @@ export type VL53L5CX = {
    * @return nothing
    * @throws errors if something went awry
    */
-  vl53l5cx_stop_ranging: (cfg: number) => undefined;
+  stop_ranging: (cfg: number) => undefined;
 
   /**
    * Fetch scan data.
@@ -63,7 +63,7 @@ export type VL53L5CX = {
    * @throws `couldn't create napi value`, `unknown generic error`,
    *  `couldn't set named property`, `couldn't set array napi value`
    */
-  vl53l5cx_get_ranging_data: (cfg: number) => ScanData;
+  get_ranging_data: (cfg: number) => ScanData;
 
   /**
    * Set scan resolution.
@@ -77,7 +77,7 @@ export type VL53L5CX = {
    * 
    * @throws `invalid arguments`, `change setting error`
    */
-  vl53l5cx_set_resolution: (cfg: number, resolution: number) => undefined;
+  set_resolution: (cfg: number, resolution: number) => undefined;
 
   /**
    *  Used as parameter for vl53l5cx_set_resolution(..)
@@ -99,7 +99,7 @@ export type VL53L5CX = {
    * 
    * @throws `invalid arguments`, `change setting error`
    */
-  vl53l5cx_set_ranging_frequency_hz: (cfg: number, freq: number) => undefined;
+  set_ranging_frequency_hz: (cfg: number, freq: number) => undefined;
 
   /**
    * Set target ordering
@@ -112,7 +112,7 @@ export type VL53L5CX = {
    * 
    * @throws `invalid arguments`, `change setting error`
    */
-  vl53l5cx_set_target_order: (cfg: number, ordering: number) => undefined;
+  set_target_order: (cfg: number, ordering: number) => undefined;
   VL53L5CX_TARGET_ORDER_CLOSEST: number;
   VL53L5CX_TARGET_ORDER_STRONGEST: number;
 
@@ -125,7 +125,7 @@ export type VL53L5CX = {
    * 
    * @throws `invalid arguments`, `change setting error`
    */
-  vl53l5cx_set_ranging_mode: (cfg: number, mode: number) => undefined;
+  set_ranging_mode: (cfg: number, mode: number) => undefined;
   VL53L5CX_RANGING_MODE_CONTINUOUS: number;
   VL53L5CX_RANGING_MODE_AUTONOMOUS: number;
 };

@@ -206,17 +206,25 @@ napi_value init(napi_env env, napi_value exports) {
                 : ((void*)&CONSTS[i].value)
         );
     }
-
-    register_vl53l5cx_comms_init(CONFS, env, exports);
-    register_vl53l5cx_is_alive(CONFS, env, exports);
-    register_vl53l5cx_check_data_ready(CONFS, env, exports);
-    register_vl53l5cx_start_ranging(CONFS, env, exports);
-    register_vl53l5cx_stop_ranging(CONFS, env, exports);
-    register_vl53l5cx_get_ranging_data(CONFS, env, exports);
-    register_vl53l5cx_set_resolution(CONFS, env, exports);
-    register_vl53l5cx_set_ranging_frequency_hz(CONFS, env, exports);
-    register_vl53l5cx_set_target_order(CONFS, env, exports);
-    register_vl53l5cx_set_ranging_mode(CONFS, env, exports);
+    
+    register_fn(CONFS, env, exports, "comms_init", cb_vl53l5cx_comms_init);
+    register_fn(CONFS, env, exports, "is_alive", cb_vl53l5cx_is_alive);
+    register_fn(CONFS, env, exports, "check_data_ready",
+        cb_vl53l5cx_check_data_ready);
+    register_fn(CONFS, env, exports, "start_ranging", 
+        cb_vl53l5cx_start_ranging);
+    register_fn(CONFS, env, exports, "stop_ranging", cb_vl53l5cx_stop_ranging);
+    register_fn(CONFS, env, exports, "get_ranging_data", 
+        cb_vl53l5cx_get_ranging_data);
+    register_fn(CONFS, env, exports, "set_resolution", 
+        cb_vl53l5cx_set_resolution);
+    register_fn(CONFS, env, exports, "set_ranging_frequency_hz", 
+        cb_vl53l5cx_set_ranging_frequency_hz);
+    register_fn(CONFS, env, exports, "set_target_order", 
+        cb_vl53l5cx_set_target_order);
+    register_fn(CONFS, env, exports, "set_ranging_mode", 
+        cb_vl53l5cx_set_ranging_mode);
+    
 
     return exports;
 }

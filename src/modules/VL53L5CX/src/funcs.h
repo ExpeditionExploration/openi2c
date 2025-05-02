@@ -134,4 +134,9 @@ void register_vl53l5cx_set_ranging_mode(
     napi_env env,
     napi_value exports
 );
+
+bool register_fn(
+    VL53L5CX_Configuration* conf, napi_env env, napi_value exports,
+    const char* fn_name, napi_callback cb
+);
 #endif

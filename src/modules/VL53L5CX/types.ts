@@ -3,6 +3,10 @@ export type ScanZone = {
     zoneIndex: number;
     distanceMillimeters: number;
     status: number;
+    /**
+     * Targets in zone
+     */ 
+    nb_target_detected: number;
 }
 export type ScanData = {
     chipTempC: number;

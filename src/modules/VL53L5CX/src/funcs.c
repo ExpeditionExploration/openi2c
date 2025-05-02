@@ -846,3 +846,56 @@ napi_value cb_vl53l5cx_init(napi_env env, napi_callback_info info) {
     }
     return NULL;
 }
+
+napi_value cb_vl53l5cx_set_power_mode(napi_env env, napi_callback_info info) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 2, 2
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+    uint32_t power_mode;
+
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR,
+            "Invalid first argument for set_power_mode(cfg, mode)."
+        );
+        return NULL;
+    }
+    status = napi_get_value_uint32(env, argv[1], &power_mode);
+    if (status != napi_ok 
+        || (power_mode != VL53L5CX_POWER_MODE_SLEEP 
+            && power_mode != VL53L5CX_POWER_MODE_WAKEUP)) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR,
+            "Invalid second argument for set_power_mode(cfg, mode)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    uint8_t res_status = vl53l5cx_set_power_mode(conf, (uint8_t) power_mode);
+    if (res_status) {
+        napi_throw_error(
+            env,
+            ERROR_CHANGING_SETTING,
+            "Couldn't change sensor power mode."
+        );
+    }
+
+    return NULL;
+}

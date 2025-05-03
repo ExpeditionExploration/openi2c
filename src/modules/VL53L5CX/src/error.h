@@ -20,6 +20,9 @@ extern const char* INIT_COMMS_ERROR;
 extern const char* NO_SENSOR;
 
 extern const char* ERROR_CHANGING_SETTING;
+extern const char* XTALK_CALIBRATION_FAILED;
+extern const char* XTALK_CANNOT_FETCH_DATA;
+extern const char* XTALK_CANNOT_STORE_DATA;
 
 
 /**

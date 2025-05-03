@@ -225,6 +225,12 @@ napi_value init(napi_env env, napi_value exports) {
     register_fn(CONFS, env, exports, "set_ranging_mode", 
         cb_vl53l5cx_set_ranging_mode);
     register_fn(CONFS, env, exports, "init", cb_vl53l5cx_init);
+    register_fn(CONFS, env, exports, "calibrate_xtalk",
+        cb_vl53l5cx_calibrate_xtalk);
+    register_fn(CONFS, env, exports, "get_caldata_xtalk",
+        cb_vl53l5cx_get_caldata_xtalk);
+    register_fn(CONFS, env, exports, "set_caldata_xtalk",
+        cb_vl53l5cx_set_caldata_xtalk);
     
 
     return exports;

@@ -136,4 +136,48 @@ export type VL53L5CX = {
    * @returns undefined
    */
   init: (cfg: number) => undefined;
+
+  /**
+   * Calibrate xtalk.
+   * 
+   * @param cfg config slot
+   * @param reflectance_percent integer
+   * @param num_samples 
+   * @param distance_mm 
+   * @returns undefined
+   * 
+   * @throws `invalid arguments`, `xtalk calibration failed`
+   */
+  calibrate_xtalk: (
+    cfg: number,
+    reflectance_percent: number,
+    num_samples: number,
+    distance_mm: number
+  ) => undefined;
+
+  /**
+   * Fetch the stored xtalk calibration data
+   * 
+   * @param cfg cfg slot
+   * @returns Arraybuffer
+   * 
+   * @throws `invalid arguments`, `cannot fetch xtalk calibration`
+   */
+  get_caldata_xtalk: (cfg: number) => ArrayBuffer;
+
+  /**
+   * Store the saved xtalk calibration data onto a sensor.
+   * 
+   * @param cfg cfg slot
+   * @param calibration_data is `VL53L5CX_XTALK_BUFFER_SIZE` bytes long.
+   * @returns undefined
+   * 
+   * @throws `invalid arguments`, `change setting error`
+   */
+  set_caldata_xtalk: (cfg: number, calibration_data: ArrayBuffer) => undefined;
+
+  /**
+   * Length of xtalk calibration data in bytes.
+   */
+  VL53L5CX_XTALK_BUFFER_SIZE: number;
 };

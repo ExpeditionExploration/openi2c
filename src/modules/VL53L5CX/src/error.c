@@ -24,3 +24,6 @@ const char* ARRAY_VALUE_NOT_SET = "couldn't set array napi value";
 const char* UNKNOWN_ERROR = "unknown error";
 
 const char* ERROR_CHANGING_SETTING = "change setting error";
+const char* XTALK_CALIBRATION_FAILED = "xtalk calibration failed";
+const char* XTALK_CANNOT_FETCH_DATA = "cannot fetch xtalk calibration";
+const char* XTALK_CANNOT_STORE_DATA = "cannot store xtalk calibration";

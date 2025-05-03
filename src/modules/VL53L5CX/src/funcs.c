@@ -2,6 +2,7 @@
 
 #include <node_api.h>
 #include <vl53l5cx_api.h>
+#include "vl53l5cx_plugin_xtalk.h"
 
 #include "funcs.h"
 
@@ -842,6 +843,159 @@ napi_value cb_vl53l5cx_init(napi_env env, napi_callback_info info) {
             env,
             ERROR_CHANGING_SETTING,
             "Couldn't change sensor mode."
+        );
+    }
+    return NULL;
+}
+
+napi_value cb_vl53l5cx_calibrate_xtalk(napi_env env, napi_callback_info info) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 4, 4
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+    uint32_t reflectance_percent; // uint16_t
+    uint32_t nb_samples; // uint8_t
+    uint32_t distance_mm; // uint16_t
+
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    status |= napi_get_value_uint32(env, argv[1], &reflectance_percent);
+    status |= napi_get_value_uint32(env, argv[2], &nb_samples);
+    status |= napi_get_value_uint32(env, argv[3], &distance_mm);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR,
+"Invalid argument for calibrate_xtalk(cfg, reflectance, n_samples, distance)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    status = vl53l5cx_calibrate_xtalk(
+        conf, (uint16_t) reflectance_percent,
+        (uint8_t) nb_samples, (uint16_t) distance_mm
+    );
+    if (status) {
+        char err[MAX_LEN_ERROR] = {0};
+        snprintf(err, MAX_LEN_ERROR, "Status: 0x%X", status);
+        napi_throw_error(
+            env, XTALK_CALIBRATION_FAILED, err
+        );
+    }
+    return NULL;
+}
+
+napi_value cb_vl53l5cx_get_caldata_xtalk(
+    napi_env env, napi_callback_info info
+) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR,
+            "Invalid argument for get_caldata_xtalk(cfg)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    void* xtalk_data;
+    napi_value xtalk_data_arraybuf;
+    napi_create_arraybuffer(
+        env, VL53L5CX_XTALK_BUFFER_SIZE, &xtalk_data, &xtalk_data_arraybuf
+    );
+    status = vl53l5cx_get_caldata_xtalk(conf, (uint8_t*) xtalk_data);
+    if (status) {
+        char err[MAX_LEN_ERROR] = {0};
+        snprintf(err, MAX_LEN_ERROR, "Status: 0x%X", status);
+        napi_throw_error(
+            env, XTALK_CANNOT_FETCH_DATA, err
+        );
+        return NULL;
+    }
+    return xtalk_data_arraybuf;
+}
+
+napi_value cb_vl53l5cx_set_caldata_xtalk(
+    napi_env env, napi_callback_info info
+) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 2, 2
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, ARGUMENT_ERROR, "Invalid argument for get_caldata_xtalk(cfg)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf =
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    uint8_t* xtalk_calib;
+    size_t xcalib_len;
+
+    status = napi_get_arraybuffer_info(
+        env, argv[1], (void**) &xtalk_calib, &xcalib_len);
+    if (status) {
+        napi_throw_error(
+            env, ARGUMENT_ERROR, "fn: set_caldata_xtalk"
+        );
+        return NULL;
+    } else if (xcalib_len != VL53L5CX_XTALK_BUFFER_SIZE) {
+        napi_throw_error(
+            env, ARGUMENT_ERROR,
+            "ArrayBuffer size is not right. fn: set_caldata_xtalk"
+        );
+        return NULL;
+    }
+    status = vl53l5cx_set_caldata_xtalk(conf, xtalk_calib);
+    if (status) {
+        napi_throw_error(
+            env, ERROR_CHANGING_SETTING,
+            "Couldn't set xtalk calibration. fn: set_caldata_xtalk"
         );
     }
     return NULL;

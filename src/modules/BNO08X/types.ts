@@ -1,4 +1,3 @@
-import { LargeNumberLike } from "crypto"
 
 export type SensorEvent = {
     timestampMicrosecond: number,
@@ -225,4 +224,313 @@ export type AsyncEvent = {
     eventId: number;
     shtpEvent: ShtpEvent | undefined;
     SensorConfigResponse: SensorConfigResponse | undefined;
+}
+
+export type EventCallback = (cookie: any, event: AsyncEvent) => void;
+
+export enum Sensors {
+    CAL_ACCEL,
+    CAL_GYRO,
+    CAL_MAG,
+    CAL_PLANAR,
+    CAL_ON_TABLE,
+    CAL_ZERO_GYRO_CONTROL_MASK,
+    CAL_ZERO_GYRO_CONTROL_ON_TABLE_DETECT,
+    CAL_ZERO_GYRO_CONTROL_NEVER,
+    CAL_ZERO_GYRO_CONTROL_ON_TABLE_CLASS,
+    CAL_ZERO_GYRO_CONTROL_ON_TABLE_CLASS_OR_LONG_TERM_STABLE
+}
+export type SensorSet = Sensors;
+
+export enum WheelDatatype {
+    Position = 0,
+    Velocity = 1,
+}
+
+export type BNO08X = {
+
+    /**
+     * @brief Open a session with a sensor hub.
+     *
+     * This function should be called before others in this API.
+     * An instance of an SH2 HAL should be passed in.
+     * This call will result in the open() function of the HAL being called.
+     *
+     * As part of the initialization process, a callback function is registered that will
+     * be invoked when the device generates certain events.  (See sh2_AsyncEventId)
+     *
+     * @param pHal Pointer to an SH2 HAL instance, provided by the target system.
+     * @param  eventCallback Will be called when events, such as reset complete, occur.
+     * @param  eventCookie Will be passed to eventCallback.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    open: (callback: EventCallback, event: AsyncEvent) => void,
+
+    /**
+     * @brief Close a session with a sensor hub.
+     *
+     * This should be called at the end of a sensor hub session.  
+     * The underlying SHTP and HAL instances will be closed.
+     *
+     */
+    close: () => void,
+
+    /**
+     * @brief Service the SH2 device, reading any data that is available and dispatching callbacks.
+     *
+     * This function should be called periodically by the host system to service an open sensor hub.
+     *
+     */
+    service: () => void,
+
+    /**
+     * @brief Register a function to receive sensor events.
+     *
+     * @param  callback A function that will be called each time a sensor event is received.
+     * @param  cookie  A value that will be passed to the sensor callback function.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    setSensorCallback: (callback: SensorCallback, cookie: any) => void,  // Throws on error
+
+    /**
+     * @brief Reset the sensor hub device by sending RESET (1) command on "device" channel.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    devReset: () => void,  // Throws on error
+
+    /**
+     * @brief Turn sensor hub on by sending ON (2) command on "device" channel.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    devOn: () => void, // Throws on error
+
+    /**
+     * @brief Put sensor hub in sleep state by sending SLEEP (3) command on "device" channel.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    devSleep: () => void, // Throws on error
+
+    /**
+     * @brief Get Product ID information from Sensorhub.
+     *
+     * @param  prodIds Pointer to structure that will receive results.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    getProdIds: () => ProductId[], // Throws on error
+
+    /**
+     * @brief Get sensor configuration.
+     *
+     * @param  sensorId Which sensor to query.
+     * @param  config SensorConfig structure to store results.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    getSensorConfig: (sensorId: SensorId) => SensorConfig, // Throws on error
+
+    /**
+     * @brief Set sensor configuration. (e.g enable a sensor at a particular rate.)
+     *
+     * @param  sensorId Which sensor to configure.
+     * @param  pConfig Pointer to structure holding sensor configuration.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    setSensorConfig: (sensorId: SensorId, conf: SensorConfig) => void, // Throws on error
+
+    /**
+     * @brief Get metadata related to a sensor.
+     *
+     * @param  sensorId Which sensor to query.
+     * @param  pData Pointer to structure to receive the results.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    getMetadata: (sensorId: SensorId) => SensorMetadata, // Throws on error
+
+    /**
+     * @brief Get an FRS record.
+     *
+     * @param  recordId Which FRS Record to retrieve.
+     * @param  pData pointer to buffer to receive the results
+     * @param[in] words Size of pData buffer, in 32-bit words.
+     * @param[out] words Number of 32-bit words retrieved.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    getFrs: (recordId: number) => ArrayBuffer, // Throws on error
+
+    /**
+     * @brief Set an FRS record
+     *
+     * @param  recordId Which FRS Record to set.
+     * @param  pData pointer to buffer containing the new data.
+     * @param  words number of 32-bit words to write.  (0 to delete record.)
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    setFrs: (recordId: number, fsrData: ArrayBuffer) => void, // THrows on error
+
+    /**
+     * @brief Get error counts.
+     *
+     * @param  severity Only errors of this severity or greater are returned.
+     * @param  pErrors Buffer to receive error codes.
+     * @param  numErrors size of pErrors array
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    getErrors: (severity: number) => sh2_ErrorRecord[], // Throws on error
+
+    /**
+     * @brief Read counters related to a sensor.
+     *
+     * @param  sensorId Which sensor to operate on.
+     * @param  pCounts Pointer to Counts structure that will receive data.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    getCounts: (sensorId: SensorId) => Counts, // THrows on error
+
+    /**
+     * @brief Clear counters related to a sensor.
+     *
+     * @param  sensorId which sensor to operate on.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    clearCounts: (sensorId: SensorId) => void, // throws on error
+
+    /**
+     * @brief Perform a tare operation on one or more axes.
+     *
+     * @param  axes Bit mask specifying which axes should be tared.
+     * @param  basis Which rotation vector to use as the basis for Tare adjustment.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    setTareNow: (axes: number, // SH2_TARE_X | SH2_TARE_Y | SH2_TARE_Z
+        basis: TareBasis) => void, // Throws on error
+
+    /**
+     * @brief Clears the previously applied tare operation.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    clearTare: () => void, // Throws on error
+
+    /**
+     * @brief Persist the results of last tare operation to flash.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    persistTare: () => void, // Throws on error
+
+    /**
+     * @brief Set the current run-time sensor reorientation. (Set to zero to clear tare.)
+     *
+     * @param  orientation Quaternion rotation vector to apply as new tare.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    setReorientation: (orientation: Quaternion) => void, // Throws blabla.
+
+    /**
+     * @brief Command the sensorhub to reset.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    reinitialize: () => void,
+
+    /**
+     * @brief Save Dynamic Calibration Data to flash.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    saveDcNow: () => void,
+
+    /**
+     * @brief Get Oscillator type.
+     *
+     * @param  pOscType pointer to data structure to receive results.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    getOscType: () => OscillatorType,
+
+    /**
+     * @brief Enable/Disable dynamic calibration for certain sensors
+     *
+     * @param  sensors Bit mask to configure which sensors are affected.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    setCalConfig: (sensors: SensorSet) => void,
+
+    /**
+     * @brief Get dynamic calibration configuration settings.
+     *
+     * @param  pSensors pointer to Bit mask, set on return.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    getCalConfig: () => SensorSet,
+
+    /**
+     * @brief Configure automatic saving of dynamic calibration data.
+     *
+     * @param  enabled Enable or Disable DCD auto-save.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    setDcdAutoSave: (enabled: boolean) => void,
+
+    /**
+     * @brief Immediately issue all buffered sensor reports from a given sensor.
+     *
+     * @param  sensorId Which sensor reports to flush.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    flush: (sensor: SensorId) => void,
+
+    /**
+     * @brief Command clear DCD in RAM, then reset sensor hub.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    clearDcdAndReset: () => void,
+
+    /**
+     * @brief Start simple self-calibration procedure.
+     *
+     * @parameter interval_us sensor report interval, uS.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    startCal: (intevalMicroseconds: number) => void,
+
+    /**
+     * @brief Finish simple self-calibration procedure.
+     *
+     * @parameter status contains calibration status code on return.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    finishCal: () => CalibrationStatus,
+
+    /**
+     * @brief send Interactive ZRO Request.
+     *
+     * @parameter intent Inform the sensor hub what sort of motion should be in progress.
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    setIZro: (intent: InteractiveZROMotionIntent) => void,
+
+    /**
+     * @brief Report wheel position/velocity to sensor hub.
+     * @parameter wheelIndex platform-dependent: 0= left, 1= right for
+     *   typical differential drive robot
+     * @parameter timestamp microsecond timestamp (hub scale) of measurement
+     * @parameter wheelData raw wheel position or velocity
+     * @parameter dataType 0 if data is position, 1 if data is velocity
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    reportWheelEncoder: (
+        wheelIndex: number, timestamp: number,
+        wheeldata: number, wheelDt: WheelDatatype
+    ) => void,
+
+    /**
+     * @brief Save Dead Reckoning Calibration Data to flash.
+     *
+     * @return SH2_OK (0), on success.  Negative value from sh2_err.h on error.
+     */
+    saveDeadReckoningCalNow: () => void,
 }

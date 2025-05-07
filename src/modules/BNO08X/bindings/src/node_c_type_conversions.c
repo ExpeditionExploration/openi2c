@@ -255,3 +255,144 @@ napi_value mkSensorIdEnum(napi_env env) {
 
     return obj;
 }
+
+napi_value mkSensorConfig(napi_env env, sh2_SensorConfig_t* cfg) {
+    napi_status status;
+    napi_value  obj;
+    status = napi_create_object(env, &obj);
+
+    napi_value changeSensitivityEnabled;
+    napi_value changeSensitivityRelative;
+    napi_value wakeupEnabled;
+    napi_value alwaysOnEnabled;
+    napi_value sniffEnabled;
+    napi_value changeSensitivity;
+    napi_value reportInterval_us;
+    napi_value batchInterval_us;
+    napi_value sensorSpecific;
+
+    // Create fields
+    status |= napi_get_boolean(env, cfg->changeSensitivityEnabled,
+                               &changeSensitivityEnabled);
+    status |= napi_get_boolean(env, cfg->changeSensitivityRelative,
+                               &changeSensitivityRelative);
+    status |= napi_get_boolean(env, cfg->wakeupEnabled, &wakeupEnabled);
+    status |= napi_get_boolean(env, cfg->sniffEnabled, &sniffEnabled);
+    status |= napi_get_boolean(env, cfg->alwaysOnEnabled, &alwaysOnEnabled);
+    status |=
+        napi_create_uint32(env, cfg->changeSensitivity, &changeSensitivity);
+    status |=
+        napi_create_uint32(env, cfg->reportInterval_us, &reportInterval_us);
+    status |= napi_create_uint32(env, cfg->batchInterval_us, &batchInterval_us);
+    status |= napi_create_uint32(env, cfg->sensorSpecific, &sensorSpecific);
+
+    // Set named props
+    status |= napi_set_named_property(env, obj, "changeSensitivityEnabled",
+                                      changeSensitivityEnabled);
+    status |= napi_set_named_property(env, obj, "changeSensitivityRelative",
+                                      changeSensitivityRelative);
+    status |= napi_set_named_property(env, obj, "wakeupEnabled", wakeupEnabled);
+    status |=
+        napi_set_named_property(env, obj, "alwaysOnEnabled", alwaysOnEnabled);
+    status |= napi_set_named_property(env, obj, "sniffEnabled", sniffEnabled);
+    status |= napi_set_named_property(env, obj, "changeSensitivity",
+                                      changeSensitivity);
+    status |= napi_set_named_property(env, obj, "reportInterval_us",
+                                      reportInterval_us);
+    status |=
+        napi_set_named_property(env, obj, "batchInterval_us", batchInterval_us);
+    status |=
+        napi_set_named_property(env, obj, "sensorSpecific", sensorSpecific);
+
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_TRANSLATING_STRUCT_TO_NODE,
+                         "Couldn't construct a SensorConfig.");
+        return NULL;
+    }
+
+    return obj;
+}
+
+napi_value mkSensorMetadata(napi_env env, sh2_SensorMetadata_t* meta) {
+    napi_status status;
+    napi_value  obj;
+    status = napi_create_object(env, &obj);
+
+    napi_value meVersion;        /**< @brief Motion Engine Version */
+    napi_value mhVersion;        /**< @brief Motion Hub Version */
+    napi_value shVersion;        /**< @brief SensorHub Version */
+    napi_value range;            /**< @brief Same units as sensor reports */
+    napi_value resolution;       /**< @brief Same units as sensor reports */
+    napi_value revision;         /**< @brief Metadata record format revision */
+    napi_value power_mA;         /**< @brief [mA] Fixed point 16Q10 format */
+    napi_value minPeriod_uS;     /**< @brief [uS] */
+    napi_value maxPeriod_uS;     /**< @brief [uS] */
+    napi_value fifoReserved;     /**< @brief (Unused) */
+    napi_value fifoMax;          /**< @brief (Unused) */
+    napi_value batchBufferBytes; /**< @brief (Unused) */
+    napi_value qPoint1;          /**< @brief q point for sensor values */
+    napi_value qPoint2; /**< @brief q point for accuracy or bias fields */
+    napi_value
+        qPoint3; /**< @brief q point for sensor data change sensitivity */
+    napi_value vendorIdLen;       /**< @brief [bytes] */
+    napi_value vendorId;          /**< @brief Vendor name and part number */
+    napi_value sensorSpecificLen; /**< @brief [bytes] */
+    napi_value sensorSpecific;    /**< @brief See SH-2 Reference Manual */
+
+    // Create napi values
+    status |= napi_create_uint32(env, meta->mhVersion, &meVersion);
+    status |= napi_create_uint32(env, meta->shVersion, &meVersion);
+    status |= napi_create_uint32(env, meta->range, &range);
+    status |= napi_create_uint32(env, meta->resolution, &resolution);
+    status |= napi_create_uint32(env, meta->revision, &revision);
+    status |= napi_create_uint32(env, meta->power_mA, &power_mA);
+    status |= napi_create_uint32(env, meta->minPeriod_uS, &minPeriod_uS);
+    status |= napi_create_uint32(env, meta->maxPeriod_uS, &maxPeriod_uS);
+    status |= napi_create_uint32(env, meta->fifoReserved, &fifoReserved);
+    status |= napi_create_uint32(env, meta->fifoMax, &fifoMax);
+    status |=
+        napi_create_uint32(env, meta->batchBufferBytes, &batchBufferBytes);
+    status |= napi_create_uint32(env, meta->qPoint1, &qPoint1);
+    status |= napi_create_uint32(env, meta->qPoint2, &qPoint2);
+    status |= napi_create_uint32(env, meta->qPoint3, &qPoint3);
+    status |= napi_create_uint32(env, meta->vendorIdLen, &vendorIdLen);
+    status |=
+        napi_create_uint32(env, meta->sensorSpecificLen, &sensorSpecificLen);
+    status |= napi_create_string_utf8(env, meta->vendorId,
+                                      strnlen(meta->vendorId, 48), &vendorId);
+    u_int8_t* buf = malloc(48);
+    memcpy(buf, &meta->sensorSpecific, 48);
+    status |= napi_create_external_arraybuffer(env, &meta->sensorSpecific, 48,
+                                               NULL, NULL, &sensorSpecific);
+
+    // Set the objects props
+    status |= napi_set_named_property(env, obj, "meVersion", meVersion);
+    status |= napi_set_named_property(env, obj, "mhVersion", mhVersion);
+    status |= napi_set_named_property(env, obj, "shVersion", shVersion);
+    status |= napi_set_named_property(env, obj, "range", range);
+    status |= napi_set_named_property(env, obj, "resolution", resolution);
+    status |= napi_set_named_property(env, obj, "revision", revision);
+    status |= napi_set_named_property(env, obj, "power_mA", power_mA);
+    status |= napi_set_named_property(env, obj, "minPeriod_uS", minPeriod_uS);
+    status |= napi_set_named_property(env, obj, "maxPeriod_uS", maxPeriod_uS);
+    status |= napi_set_named_property(env, obj, "fifoReserved", fifoReserved);
+    status |= napi_set_named_property(env, obj, "fifoMax", fifoMax);
+    status |=
+        napi_set_named_property(env, obj, "batchBufferBytes", batchBufferBytes);
+    status |= napi_set_named_property(env, obj, "qPoint1", qPoint1);
+    status |= napi_set_named_property(env, obj, "qPoint2", qPoint2);
+    status |= napi_set_named_property(env, obj, "qPoint3", qPoint3);
+    status |= napi_set_named_property(env, obj, "vendorIdLen", vendorIdLen);
+    status |= napi_set_named_property(env, obj, "vendorId", vendorId);
+    status |= napi_set_named_property(env, obj, "sensorSpecificLen",
+                                      sensorSpecificLen);
+    status |=
+        napi_set_named_property(env, obj, "sensorSpecific", sensorSpecific);
+
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_TRANSLATING_STRUCT_TO_NODE,
+                         "Couldn't build SensorMetaData.");
+        return NULL;
+    }
+    return obj;
+}

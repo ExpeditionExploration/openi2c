@@ -6,3 +6,5 @@ const char* ERROR_READING_FULL_BUFFER =
 
 const char* ARGUMENT_ERROR = "argument error";
 const char* UNKNOWN_ERROR = "unknown error happened with nodejs";
+const char* ERROR_TRANSLATING_STRUCT_TO_NODE =
+    "could't translate value(s) in C struct as node values";

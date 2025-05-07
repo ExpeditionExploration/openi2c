@@ -1,0 +1,257 @@
+
+#include "error.h"
+#include "sh2/sh2.h"
+#include <node/node_api.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+napi_value mkNapiSensorEvent(napi_env env, sh2_SensorEvent_t* ev) {
+    napi_status status;
+    napi_value  obj; // JS object
+    status = napi_create_object(env, &obj);
+
+    uint8_t* buf = (uint8_t*)malloc(ev->len);
+    memcpy((void*)buf, (const void*)&ev->report, ev->len);
+
+    napi_value timestamp_uS; // uint64_t -> number
+    napi_value delay_uS;     // int64_t -> number
+    napi_value len;          // uint8_t -> number
+    napi_value reportId;     // uint8_t -> number
+    napi_value report;       // uint8_t -> ArrayBuffer
+    status |= napi_create_bigint_uint64(env, ev->timestamp_uS, &timestamp_uS);
+    status |= napi_create_int64(env, ev->delay_uS, &delay_uS);
+    status |= napi_create_uint32(env, ev->len, &len);
+    status |= napi_create_uint32(env, ev->reportId, &reportId);
+    status |= napi_create_external_arraybuffer(env, buf, ev->len, NULL, NULL,
+                                               &report);
+    if (status != napi_ok) {
+        napi_throw_error(env, NULL, "Failed to create NAPI value");
+        return NULL;
+    }
+
+    status = napi_set_named_property(env, obj, "timestampMicroseconds",
+                                     timestamp_uS);
+    status |= napi_set_named_property(env, obj, "delayMicroseconds", delay_uS);
+    status |= napi_set_named_property(env, obj, "length", len);
+    status |= napi_set_named_property(env, obj, "reportId", reportId);
+    status |= napi_set_named_property(env, obj, "report", report);
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_TRANSLATING_STRUCT_TO_NODE,
+                         "Failed to set NAPI property");
+        return NULL;
+    }
+    return obj;
+}
+
+napi_value mkProductId(napi_env env, sh2_ProductId_t* id) {
+    napi_status status;
+    napi_value  obj; // JS object
+    status = napi_create_object(env, &obj);
+
+    napi_value resetCause;     // uint8_t -> number
+    napi_value swVersionMajor; // uint8_t -> number
+    napi_value swVersionMinor; // uint8_t -> number
+    napi_value swPartNumber;   // uint32_t -> number
+    napi_value swBuildNumber;  // uint32_t -> number
+    napi_value swVersionPatch; // uint16_t -> number
+    napi_value reserved0;      // uint8_t -> number
+    napi_value reserved1;      // uint8_t -> number
+
+    status |= napi_create_uint32(env, id->resetCause, &resetCause);
+    status |= napi_create_uint32(env, id->swVersionMajor, &swVersionMajor);
+    status |= napi_create_uint32(env, id->swVersionMinor, &swVersionMinor);
+    status |= napi_create_uint32(env, id->swPartNumber, &swPartNumber);
+    status |= napi_create_uint32(env, id->swBuildNumber, &swBuildNumber);
+    status |= napi_create_uint32(env, id->swVersionPatch, &swVersionPatch);
+    status |= napi_create_uint32(env, id->reserved0, &reserved0);
+    status |= napi_create_uint32(env, id->reserved1, &reserved1);
+
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_TRANSLATING_STRUCT_TO_NODE,
+                         "Couldn't construct a ProductId");
+    }
+
+    return obj;
+}
+
+napi_value mkSensorIdEnum(napi_env env) {
+    napi_status status;
+    napi_value  obj;
+    status = napi_create_object(env, &obj);
+
+    napi_value raw_accelerometer;
+    napi_value accelerometer;
+    napi_value linear_acceleration;
+    napi_value gravity;
+    napi_value raw_gyroscope;
+    napi_value gyroscope_calibrated;
+    napi_value gyroscope_uncalibrated;
+    napi_value raw_magnetometer;
+    napi_value magnetic_field_calibrated;
+    napi_value magnetic_field_uncalibrated;
+    napi_value rotation_vector;
+    napi_value game_rotation_vector;
+    napi_value geomagnetic_rotation_vector;
+    napi_value pressure;
+    napi_value ambient_light;
+    napi_value humidity;
+    napi_value proximity;
+    napi_value temperature;
+    napi_value reserved;
+    napi_value tap_detector;
+    napi_value step_detector;
+    napi_value step_counter;
+    napi_value significant_motion;
+    napi_value stability_classifier;
+    napi_value shake_detector;
+    napi_value flip_detector;
+    napi_value pickup_detector;
+    napi_value stability_detector;
+    napi_value personal_activity_classifier;
+    napi_value sleep_detector;
+    napi_value tilt_detector;
+    napi_value pocket_detector;
+    napi_value circle_detector;
+    napi_value heart_rate_monitor;
+    napi_value arvr_stabilized_rv;
+    napi_value arvr_stabilized_grv;
+    napi_value gyro_integrated_rv;
+    napi_value izro_motion_request;
+    napi_value raw_optical_flow;
+    napi_value dead_reckoning_pose;
+    napi_value wheel_encoder;
+    napi_value max_sensor_id;
+
+    status |=
+        napi_create_uint32(env, SH2_RAW_ACCELEROMETER, &raw_accelerometer);
+    status |= napi_create_uint32(env, SH2_ACCELEROMETER, &accelerometer);
+    status |=
+        napi_create_uint32(env, SH2_LINEAR_ACCELERATION, &linear_acceleration);
+    status |= napi_create_uint32(env, SH2_GRAVITY, &gravity);
+    status |= napi_create_uint32(env, SH2_RAW_GYROSCOPE, &raw_gyroscope);
+    status |= napi_create_uint32(env, SH2_GYROSCOPE_CALIBRATED,
+                                 &gyroscope_calibrated);
+    status |= napi_create_uint32(env, SH2_GYROSCOPE_UNCALIBRATED,
+                                 &gyroscope_uncalibrated);
+    status |= napi_create_uint32(env, SH2_RAW_MAGNETOMETER, &raw_magnetometer);
+    status |= napi_create_uint32(env, SH2_MAGNETIC_FIELD_CALIBRATED,
+                                 &magnetic_field_calibrated);
+    status |= napi_create_uint32(env, SH2_MAGNETIC_FIELD_UNCALIBRATED,
+                                 &magnetic_field_uncalibrated);
+    status |= napi_create_uint32(env, SH2_ROTATION_VECTOR, &rotation_vector);
+    status |= napi_create_uint32(env, SH2_GAME_ROTATION_VECTOR,
+                                 &game_rotation_vector);
+    status |= napi_create_uint32(env, SH2_GEOMAGNETIC_ROTATION_VECTOR,
+                                 &geomagnetic_rotation_vector);
+    status |= napi_create_uint32(env, SH2_PRESSURE, &pressure);
+    status |= napi_create_uint32(env, SH2_AMBIENT_LIGHT, &ambient_light);
+    status |= napi_create_uint32(env, SH2_HUMIDITY, &humidity);
+    status |= napi_create_uint32(env, SH2_PROXIMITY, &proximity);
+    status |= napi_create_uint32(env, SH2_TEMPERATURE, &temperature);
+    status |= napi_create_uint32(env, SH2_RESERVED, &reserved);
+    status |= napi_create_uint32(env, SH2_TAP_DETECTOR, &tap_detector);
+    status |= napi_create_uint32(env, SH2_STEP_DETECTOR, &step_detector);
+    status |= napi_create_uint32(env, SH2_STEP_COUNTER, &step_counter);
+    status |=
+        napi_create_uint32(env, SH2_SIGNIFICANT_MOTION, &significant_motion);
+    status |= napi_create_uint32(env, SH2_STABILITY_CLASSIFIER,
+                                 &stability_classifier);
+    status |= napi_create_uint32(env, SH2_SHAKE_DETECTOR, &shake_detector);
+    status |= napi_create_uint32(env, SH2_FLIP_DETECTOR, &flip_detector);
+    status |= napi_create_uint32(env, SH2_PICKUP_DETECTOR, &pickup_detector);
+    status |=
+        napi_create_uint32(env, SH2_STABILITY_DETECTOR, &stability_detector);
+    status |= napi_create_uint32(env, SH2_PERSONAL_ACTIVITY_CLASSIFIER,
+                                 &personal_activity_classifier);
+    status |= napi_create_uint32(env, SH2_SLEEP_DETECTOR, &sleep_detector);
+    status |= napi_create_uint32(env, SH2_TILT_DETECTOR, &tilt_detector);
+    status |= napi_create_uint32(env, SH2_POCKET_DETECTOR, &pocket_detector);
+    status |= napi_create_uint32(env, SH2_CIRCLE_DETECTOR, &circle_detector);
+    status |=
+        napi_create_uint32(env, SH2_HEART_RATE_MONITOR, &heart_rate_monitor);
+    status |=
+        napi_create_uint32(env, SH2_ARVR_STABILIZED_RV, &arvr_stabilized_rv);
+    status |=
+        napi_create_uint32(env, SH2_ARVR_STABILIZED_GRV, &arvr_stabilized_grv);
+    status |=
+        napi_create_uint32(env, SH2_GYRO_INTEGRATED_RV, &gyro_integrated_rv);
+    status |=
+        napi_create_uint32(env, SH2_IZRO_MOTION_REQUEST, &izro_motion_request);
+    status |= napi_create_uint32(env, SH2_RAW_OPTICAL_FLOW, &raw_optical_flow);
+    status |=
+        napi_create_uint32(env, SH2_DEAD_RECKONING_POSE, &dead_reckoning_pose);
+    status |= napi_create_uint32(env, SH2_WHEEL_ENCODER, &wheel_encoder);
+    status |= napi_create_uint32(env, SH2_MAX_SENSOR_ID, &max_sensor_id);
+
+    status |= napi_set_named_property(env, obj, "RAW_ACCELEROMETER",
+                                      raw_accelerometer);
+    status |= napi_set_named_property(env, obj, "ACCELEROMETER", accelerometer);
+    status |= napi_set_named_property(env, obj, "LINEAR_ACCELERATION",
+                                      linear_acceleration);
+    status |= napi_set_named_property(env, obj, "GRAVITY", gravity);
+    status |= napi_set_named_property(env, obj, "RAW_GYROSCOPE", raw_gyroscope);
+    status |= napi_set_named_property(env, obj, "MAGNETIC_FIELD_CALIBRATED",
+                                      magnetic_field_calibrated);
+    status |= napi_set_named_property(env, obj, "MAGNETIC_FIELD_UNCALIBRATED",
+                                      magnetic_field_uncalibrated);
+    status |=
+        napi_set_named_property(env, obj, "ROTATION_VECTOR", rotation_vector);
+    status |= napi_set_named_property(env, obj, "GAME_ROTATION_VECTOR",
+                                      game_rotation_vector);
+    status |= napi_set_named_property(env, obj, "GEOMAGNETIC_ROTATION_VECTOR",
+                                      geomagnetic_rotation_vector);
+    status |= napi_set_named_property(env, obj, "PRESSURE", pressure);
+    status |= napi_set_named_property(env, obj, "AMBIENT_LIGHT", ambient_light);
+    status |= napi_set_named_property(env, obj, "HUMIDITY", humidity);
+    status |= napi_set_named_property(env, obj, "PROXIMITY", proximity);
+    status |= napi_set_named_property(env, obj, "TEMPERATURE", temperature);
+    status |= napi_set_named_property(env, obj, "RESERVED", reserved);
+    status |= napi_set_named_property(env, obj, "TAP_DETECTOR", tap_detector);
+    status |= napi_set_named_property(env, obj, "STEP_DETECTOR", step_detector);
+    status |= napi_set_named_property(env, obj, "STEP_COUNTER", step_counter);
+    status |= napi_set_named_property(env, obj, "SIGNIFICANT_MOTION",
+                                      significant_motion);
+    status |= napi_set_named_property(env, obj, "STABILITY_CLASSIFIER",
+                                      stability_classifier);
+    status |=
+        napi_set_named_property(env, obj, "SHAKE_DETECTOR", shake_detector);
+    status |= napi_set_named_property(env, obj, "FLIP_DETECTOR", flip_detector);
+    status |=
+        napi_set_named_property(env, obj, "PICKUP_DETECTOR", pickup_detector);
+    status |= napi_set_named_property(env, obj, "STABILITY_DETECTOR",
+                                      stability_detector);
+    status |= napi_set_named_property(env, obj, "PERSONAL_ACTIVITY_CLASSIFIER",
+                                      personal_activity_classifier);
+    status |=
+        napi_set_named_property(env, obj, "SLEEP_DETECTOR", sleep_detector);
+    status |= napi_set_named_property(env, obj, "TILT_DETECTOR", tilt_detector);
+    status |=
+        napi_set_named_property(env, obj, "POCKET_DETECTOR", pocket_detector);
+    status |=
+        napi_set_named_property(env, obj, "CIRCLE_DETECTOR", circle_detector);
+    status |= napi_set_named_property(env, obj, "HEART_RATE_MONITOR",
+                                      heart_rate_monitor);
+    status |= napi_set_named_property(env, obj, "ARVR_STABILIZED_RV",
+                                      arvr_stabilized_rv);
+    status |= napi_set_named_property(env, obj, "ARVR_STABILIZED_GRV",
+                                      arvr_stabilized_grv);
+    status |= napi_set_named_property(env, obj, "GYRO_INTEGRATED_RV",
+                                      gyro_integrated_rv);
+    status |= napi_set_named_property(env, obj, "IZRO_MOTION_REQUEST",
+                                      izro_motion_request);
+    status |=
+        napi_set_named_property(env, obj, "RAW_OPTICAL_FLOW", raw_optical_flow);
+    status |= napi_set_named_property(env, obj, "DEAD_RECKONING_POSE",
+                                      dead_reckoning_pose);
+    status |= napi_set_named_property(env, obj, "WHEEL_ENCODER", wheel_encoder);
+    status |= napi_set_named_property(env, obj, "MAX_SENSOR_ID", max_sensor_id);
+
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_TRANSLATING_STRUCT_TO_NODE,
+                         "Could not create SensorId enum.");
+        return NULL;
+    }
+
+    return obj;
+}

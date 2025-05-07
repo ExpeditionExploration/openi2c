@@ -1,7 +1,7 @@
 
 export type SensorEvent = {
-    timestampMicrosecond: number,
-    delayMicrosecond: number,
+    timestampMicroseconds: number,
+    delayMicroseconds: number,
     len: number,
     reportId: number,
     report: ArrayBuffer

@@ -4,6 +4,8 @@
       "target_name": "bno08x_native",
       "sources": [
         "src/binding.c",
+        "src/sh2_hal.c",
+        "src/types.c",
         "src/error.c",
         "src/funcs.c",
         "src/constants.c",
@@ -14,8 +16,7 @@
         "src/sh2/shtp.c"
       ],
       "include_dirs": [
-          "src/",
-          "src/sh2/"
+          "src/"
       ],
       "cflags!": [
             "-Wall",    # Enable all warnings

@@ -532,6 +532,117 @@ napi_value cb_vl53l5cx_get_ranging_data(
         }
         #endif
 
+        // Number of targets in zone
+        uint8_t targets_for_this_zone = results.nb_target_detected[i];
+        napi_value targets;
+        status = napi_create_uint32(
+            env, (uint32_t) targets_for_this_zone, &targets);
+        if (status != napi_ok) {
+            napi_throw_error(
+                env, VALUE_NAPI_ERROR, "fn: get_ranging_data"
+            );
+            return NULL;
+        }
+        status = napi_set_named_property(
+            env, zone, "nbTargetDetected", targets);
+        if (status != napi_ok) {
+            napi_throw_error(
+                env, NAMED_PROPERTY_NOT_SET, "fn: get_ranging_data");
+            return NULL;
+        }
+
+        // Ambient per spad
+        uint32_t ambient = results.ambient_per_spad[i];
+        napi_value n_ambient;
+        status = napi_create_uint32(env, ambient, &n_ambient);
+        if (status != napi_ok) {
+            napi_throw_error(env, VALUE_NAPI_ERROR, "fn: get_ranging_data");
+            return NULL;
+        }
+        status = napi_set_named_property(
+            env, zone, "ambientPerSpad", n_ambient);
+        if (status != napi_ok) {
+            napi_throw_error(
+                env, NAMED_PROPERTY_NOT_SET, "fn: get_ranging_data");
+            return NULL;
+        }
+
+        // Number of spads enabled
+        uint32_t num_spads = results.nb_spads_enabled[i];
+        napi_value n_num_spads;
+        status = napi_create_uint32(env, num_spads, &n_num_spads);
+        if (status != napi_ok) {
+            napi_throw_error(env, VALUE_NAPI_ERROR, "fn: get_ranging_data");
+            return NULL;
+        }
+        status = napi_set_named_property(
+            env, zone, "nbSpadsEnabled", n_num_spads);
+        if (status != napi_ok) {
+            napi_throw_error(
+                env, NAMED_PROPERTY_NOT_SET, "fn: get_ranging_data");
+            return NULL;
+        }
+
+        // Add per target data
+        napi_value targets_array;
+        status = napi_create_array_with_length(
+            env, VL53L5CX_NB_TARGET_PER_ZONE, &targets_array);
+        if (status != napi_ok) {
+            napi_throw_error(env, VALUE_NAPI_ERROR, "fn: get_ranging_data");
+            return NULL;
+        }
+        for (size_t j=0; j < VL53L5CX_NB_TARGET_PER_ZONE; j++) {
+            napi_value target;
+            status = napi_create_object(env, &target);
+            if (status != napi_ok) {
+                napi_throw_error(env, VALUE_NAPI_ERROR, "fn: get_ranging_data");
+                return NULL;
+            }
+            const uint16_t idx = VL53L5CX_NB_TARGET_PER_ZONE*i+j;
+            uint8_t target_status_c = results.target_status[idx];
+            int16_t distance_millimeters_c = results.distance_mm[idx];
+            uint32_t signal_per_spad_c = results.signal_per_spad[idx];
+            uint16_t range_sigma_mm_c = results.range_sigma_mm[idx];
+            napi_value target_status;
+            napi_value distance_millimeters;
+            napi_value signal_per_spad;
+            napi_value range_sigma_millimeters;
+            status = napi_ok; // 0
+            status |= napi_create_uint32(
+                env, (uint32_t) target_status_c, &target_status);
+            status |=  napi_create_int32(
+                env, (int32_t) distance_millimeters_c, &distance_millimeters);
+            status |= napi_create_uint32(
+                env, signal_per_spad_c, &signal_per_spad);
+            status |= napi_create_uint32(
+                env, (uint32_t) range_sigma_mm_c, &range_sigma_millimeters);
+            if (status != napi_ok) {
+                napi_throw_error(env, VALUE_NAPI_ERROR, "fn: get_ranging_data");
+                return NULL;
+            }
+            status = napi_set_named_property(
+                env, target, "targetStatus", target_status);
+            status |= napi_set_named_property(
+                env, target, "distanceMillimeters", distance_millimeters);
+            status |= napi_set_named_property(
+                env, target, "signalPerSpad", signal_per_spad);
+            status |= napi_set_named_property(
+                env, target, "rangeSigmaMillimeters", range_sigma_millimeters);
+            if (status != napi_ok) {
+                napi_throw_error(
+                    env, NAMED_PROPERTY_NOT_SET, "fn: get_ranging_data");
+                return NULL;
+            }
+
+            napi_set_element(env, targets_array, j, target);
+        }
+        status = napi_set_named_property(env, zone, "targetData", targets_array);
+        if (status != napi_ok) {
+            napi_throw_error(
+                env, NAMED_PROPERTY_NOT_SET, "fn get_ranging_data");
+        }
+
+        /* Finally add the zone element to the zones array */
         status = napi_set_element(env, scan_zones, i, zone);
         if (status != napi_ok) {
             napi_throw_error(

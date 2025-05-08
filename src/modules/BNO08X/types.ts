@@ -198,9 +198,9 @@ export enum InteractiveZROMotionRequest {
 }
 
 export enum AsyncEventId {
-    SH2_RESET,
-    SH2_SHTP_EVENT,
-    SH2_GET_FEATURE_RESP,
+    RESET,
+    SHTP_EVENT,
+    GET_FEATURE_RESP,
 }
 
 export enum ShtpEvent {

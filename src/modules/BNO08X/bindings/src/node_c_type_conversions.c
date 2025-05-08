@@ -655,3 +655,26 @@ napi_value mkMotionRequest(napi_env env) {
     }
     return obj;
 }
+
+napi_value mkAsyncEventId(napi_env env) {
+    napi_value  obj;
+    napi_status status;
+    status = napi_create_object(env, &obj);
+
+    napi_value reset, shtp_event, get_feature_resp;
+
+    napi_create_uint32(env, SH2_RESET, &reset);
+    napi_create_uint32(env, SH2_SHTP_EVENT, &shtp_event);
+    napi_create_uint32(env, SH2_GET_FEATURE_RESP, &get_feature_resp);
+
+    napi_set_named_property(env, obj, "RESET", reset);
+    napi_set_named_property(env, obj, "SHTP_EVENT", shtp_event);
+    napi_set_named_property(env, obj, "GET_FEATURE_RESP", get_feature_resp);
+
+    if (status != napi_ok) {
+        napi_throw_error(env, ERROR_TRANSLATING_STRUCT_TO_NODE,
+                         "couldn't construct AsyncEventId");
+        return NULL;
+    }
+    return obj;
+}

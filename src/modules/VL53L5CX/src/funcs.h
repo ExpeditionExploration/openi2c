@@ -82,6 +82,8 @@ napi_value cb_vl53l5cx_set_ranging_mode(napi_env, napi_callback_info);
 
 napi_value cb_vl53l5cx_init(napi_env, napi_callback_info);
 
+napi_value cb_vl53l5cx_set_power_mode(napi_env, napi_callback_info);
+
 napi_value cb_vl53l5cx_get_integration_time_ms(napi_env, napi_callback_info);
 
 bool register_fn(

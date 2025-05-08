@@ -229,6 +229,9 @@ napi_value init(napi_env env, napi_value exports) {
         cb_vl53l5cx_get_integration_time_ms);
     
 
+    register_fn(CONFS, env, exports, "set_power_mode",
+        cb_vl53l5cx_set_power_mode);
+    
     return exports;
 }
 

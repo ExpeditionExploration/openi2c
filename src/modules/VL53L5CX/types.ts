@@ -165,4 +165,16 @@ export type VL53L5CX = {
    *         `couldn't create napi value`
    */
   get_integration_time_ms: (cfg: number) => number;
+  /**
+   * Change power to being awake or sleeping
+   * 
+   * @param cfg conf slot
+   * @param mode One of `VL53L5CX_POWER_MODE_*` constants.
+   * @returns undefined
+   * 
+   * @throws `invalid arguments`, `change setting error`
+   */
+  set_power_mode: (cfg: number, mode: number) => undefined;
+  VL53L5CX_POWER_MODE_SLEEP: number;
+  VL53L5CX_POWER_MODE_WAKEUP: number;
 };

@@ -846,3 +846,58 @@ napi_value cb_vl53l5cx_init(napi_env env, napi_callback_info info) {
     }
     return NULL;
 }
+
+napi_value cb_vl53l5cx_get_integration_time_ms(
+    napi_env env, napi_callback_info info
+) {
+    napi_value this;
+    size_t argc = MAX_ARGUMENTS;
+    void* data;
+    napi_status status;
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+
+    bool success = parse_args(
+        env, info, &argc, argv, &this, &data, 1, 1
+    );
+    if (!success) {
+        return NULL;
+    }
+
+    uint32_t cfg_slot;
+    status = napi_get_value_uint32(env, argv[0], &cfg_slot);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env, 
+            ARGUMENT_ERROR,
+            "Invalid first argument for init(cfg)."
+        );
+        return NULL;
+    }
+
+    VL53L5CX_Configuration* conf = 
+        ((VL53L5CX_Configuration*) data) + cfg_slot;
+
+    uint32_t it_ms;
+    uint8_t res_status = vl53l5cx_get_integration_time_ms(conf, &it_ms);
+    if (res_status) {
+        napi_throw_error(
+            env,
+            ERROR_GETTING_VALUE,
+            "Couldn't read integration time."
+        );
+        return NULL;
+    }
+
+    napi_value ret_val;
+    status = napi_create_uint32(env, it_ms, &ret_val);
+    if (status != napi_ok) {
+        napi_throw_error(
+            env,
+            VALUE_NAPI_ERROR,
+            "Couldn't create uint32 in cb_vl53l5cx_get_integration_time_ms"
+        );
+        return NULL;
+    }
+
+    return ret_val;
+}

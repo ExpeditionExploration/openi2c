@@ -191,10 +191,10 @@ export enum InteractiveZROMotionIntent {
 };
 
 export enum InteractiveZROMotionRequest {
-    SH2_IZRO_MR_NO_REQUEST = 0,
-    SH2_IZRO_MR_STAY_STATIONARY,
-    SH2_IZRO_MR_STATIONARY_NON_URGENT,
-    SH2_IZRO_MR_STATIONARY_URGENT,
+    NO_REQUEST,
+    STAY_STATIONARY,
+    STATIONARY_NON_URGENT,
+    STATIONARY_URGENT,
 }
 
 export enum AsyncEventId {

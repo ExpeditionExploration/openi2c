@@ -204,14 +204,14 @@ export enum AsyncEventId {
 }
 
 export enum ShtpEvent {
-    SH2_SHTP_TX_DISCARD = 0,
-    SH2_SHTP_SHORT_FRAGMENT = 1,
-    SH2_SHTP_TOO_LARGE_PAYLOADS = 2,
-    SH2_SHTP_BAD_RX_CHAN = 3,
-    SH2_SHTP_BAD_TX_CHAN = 4,
-    SH2_SHTP_BAD_FRAGMENT = 5,
-    SH2_SHTP_BAD_SN = 6,
-    SH2_SHTP_INTERRUPTED_PAYLOAD = 7,
+    TX_DISCARD = 0,
+    SHORT_FRAGMENT = 1,
+    TOO_LARGE_PAYLOADS = 2,
+    BAD_RX_CHAN = 3,
+    BAD_TX_CHAN = 4,
+    BAD_FRAGMENT = 5,
+    BAD_SN = 6,
+    INTERRUPTED_PAYLOAD = 7,
 };
 
 export type SensorConfigResponse = {

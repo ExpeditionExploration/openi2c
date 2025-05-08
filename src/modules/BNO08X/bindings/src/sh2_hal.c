@@ -1,21 +1,17 @@
-#include <stddef.h>
-#include <stdint.h>
-#include <time.h>
-#include <string.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
-#include <errno.h>
 #include "sh2/sh2_hal.h"
 #include "error.h"
-
-typedef struct i2c_settings_t {
-    uint8_t bus_number;
-    uint8_t addr;
-} i2c_settings_t;
+#include "sh2_hal_supplement.h"
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/i2c-dev.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <time.h>
+#include <unistd.h>
 
 static i2c_settings_t CURRENT_I2C_SETTINGS;
 
@@ -24,12 +20,12 @@ static i2c_settings_t CURRENT_I2C_SETTINGS;
 // interface with the sensor hub.
 // It should also perform a reset cycle on the sensor hub to
 // ensure communications start from a known state.
-int open_i2c(sh2_Hal_t *self){};
+int open_i2c(sh2_Hal_t* self) { return 0; }
 
 // This function completes communications with the sensor hub.
 // It should put the device in reset then de-initialize any
 // peripherals or hardware resources that were used.
-void close_i2c(sh2_Hal_t *self){};
+void close_i2c(sh2_Hal_t* self) {}
 
 // This function supports reading data from the sensor hub.
 // It will be called frequently to service the device.
@@ -46,12 +42,11 @@ void close_i2c(sh2_Hal_t *self){};
 // perform other housekeeping operations.  (In the case of UART
 // interfacing, bytes transmitted are staggered in time and this
 // function can be used to keep the transmission flowing.)
-int read_from_i2c(
-    sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t *t_us
-) {
+int read_from_i2c(sh2_Hal_t* self, uint8_t* pBuffer, unsigned len,
+                  uint32_t* t_us) {
     i2c_settings_t* settings = &CURRENT_I2C_SETTINGS;
-    char dev[12] = {0x00};
-    snprintf(dev, 12, "/dev/i2c-%hhd", settings->bus_number);
+    char            dev[12]  = {0x00};
+    snprintf(dev, 12, "/dev/i2c-%hhd", settings->bus);
 
     int fd = open(dev, O_RDONLY);
     if (fd < 0) {
@@ -66,16 +61,16 @@ int read_from_i2c(
     }
 
     uint8_t buf[len];
-    size_t total_read = 0;
+    size_t  total_read = 0;
     ssize_t read_bytes;
-    int zero_read_attempts = 0;
+    int     zero_read_attempts = 0;
     while (total_read < len) {
-        read_bytes = read(fd, buf+total_read, len-total_read);
+        read_bytes = read(fd, buf + total_read, len - total_read);
         if (read_bytes < 0) {
             perror(ERROR_WRITING_TO_SLAVE);
             printf("error code: %s\n", strerror(errno));
             return 0;
-        } else if (read_bytes < 1 && ++zero_read_attempts > 3) {  // caution
+        } else if (read_bytes < 1 && ++zero_read_attempts > 3) { // caution
             perror(ERROR_READING_FULL_BUFFER);
             return 0;
         } else {
@@ -99,12 +94,10 @@ int read_from_i2c(
 // copy the data from pBuffer and return the number of bytes
 // accepted.  It need not block.  The actual transmission of
 // the data can continue after this function returns.
-int write_to_i2c(
-    sh2_Hal_t *self, uint8_t *pBuffer, unsigned int len
-) {
+int write_to_i2c(sh2_Hal_t* self, uint8_t* pBuffer, unsigned int len) {
     i2c_settings_t* settings = &CURRENT_I2C_SETTINGS;
-    char dev[12] = {0x00};
-    snprintf(dev, 12, "/dev/i2c-%hhd", settings->bus_number);
+    char            dev[12]  = {0x00};
+    snprintf(dev, 12, "/dev/i2c-%hhd", settings->bus);
 
     int fd = open(dev, O_WRONLY);
     if (fd < 0) {
@@ -118,7 +111,7 @@ int write_to_i2c(
         return 0;
     }
 
-    size_t total_sent = 0;
+    size_t  total_sent = 0;
     ssize_t sent;
     while (total_sent < len) {
         sent = write(fd, pBuffer, len);
@@ -142,7 +135,7 @@ int write_to_i2c(
  * Return uint32_t which is the time since sytem boot in micro seconds. The
  * value starts from 0 again in case it would exceed the 32-bit range.
  */
-uint32_t get_time_us(sh2_Hal_t *self) {
+uint32_t get_time_us(sh2_Hal_t* self) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return ts.tv_nsec % 4294967295; /* Maximum for uint32_t */
@@ -152,17 +145,13 @@ void set_i2c_settings(i2c_settings_t* settings) {
     CURRENT_I2C_SETTINGS = *settings;
 }
 
-i2c_settings_t get_i2c_settings() {
-    return CURRENT_I2C_SETTINGS;
-}
+i2c_settings_t get_i2c_settings() { return CURRENT_I2C_SETTINGS; }
 
 sh2_Hal_t get_hal() {
-    sh2_Hal_t hal = {
-        .open = open_i2c,
-        .close = close_i2c,
-        .read = read_from_i2c,
-        .write = write_to_i2c,
-        .getTimeUs = get_time_us
-    };
+    sh2_Hal_t hal = {.open      = open_i2c,
+                     .close     = close_i2c,
+                     .read      = read_from_i2c,
+                     .write     = write_to_i2c,
+                     .getTimeUs = get_time_us};
     return hal;
 }

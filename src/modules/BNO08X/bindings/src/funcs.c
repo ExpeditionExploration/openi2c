@@ -172,12 +172,16 @@ napi_value cb_getI2CSettings(napi_env env, napi_callback_info _) {
 
     i2c_settings_t settings = get_i2c_settings();
 
-    napi_value bus, addr;
+    napi_value bus, addr, obj;
     status = napi_create_uint32(env, settings.bus, &bus);
     status |= napi_create_uint32(env, settings.addr, &addr);
+    status |= napi_create_object(env, &obj);
+    status |= napi_set_named_property(env, obj, "bus", bus);
+    status |= napi_set_named_property(env, obj, "addr", addr);
     if (status != napi_ok) {
         napi_throw_error(env, ERROR_TRANSLATING_STRUCT_TO_NODE,
                          "Couldn't construct I2C settings");
+        return NULL;
     }
-    return NULL;
+    return obj;
 }

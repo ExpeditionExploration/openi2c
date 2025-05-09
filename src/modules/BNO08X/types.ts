@@ -250,6 +250,7 @@ export enum WheelDatatype {
 export type BNO08X = {
 
     setI2CConfig: (bus: number, addr: number) => void;
+    getI2CConfig: () => { bus: number, addr: number };
 
     /**
      * @brief Open a session with a sensor hub.

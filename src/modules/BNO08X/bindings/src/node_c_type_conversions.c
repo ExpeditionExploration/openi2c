@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-napi_value mkNapiSensorEvent(napi_env env, sh2_SensorEvent_t* ev) {
+napi_value mkSensorEvent(napi_env env, sh2_SensorEvent_t* ev) {
     napi_status status;
     napi_value  obj; // JS object
     status = napi_create_object(env, &obj);
@@ -26,7 +26,8 @@ napi_value mkNapiSensorEvent(napi_env env, sh2_SensorEvent_t* ev) {
     status |= napi_create_external_arraybuffer(env, buf, ev->len, NULL, NULL,
                                                &report);
     if (status != napi_ok) {
-        napi_throw_error(env, NULL, "Failed to create NAPI value");
+        napi_throw_error(env, ERROR_TRANSLATING_STRUCT_TO_NODE,
+                         "Failed to create NAPI value");
         return NULL;
     }
 

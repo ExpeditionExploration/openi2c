@@ -1,8 +1,10 @@
 #include "error.h"
 #include "node_c_type_conversions.h"
+#include "sh2/sh2.h"
 #include "sh2/sh2_hal.h"
 #include "sh2_hal_supplement.h"
 #include <node/node_api.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -156,7 +158,8 @@ napi_value cb_setI2CSettings(napi_env env, napi_callback_info info) {
         return NULL;
     }
 
-    i2c_settings_t i2c_settings = {.bus = bus, .addr = addr};
+    sh2_Hal_t      hal          = make_hal();
+    i2c_settings_t i2c_settings = {.bus = bus, .addr = addr, .hal = hal};
     set_i2c_settings(&i2c_settings);
 
     return NULL;
@@ -184,4 +187,84 @@ napi_value cb_getI2CSettings(napi_env env, napi_callback_info _) {
         return NULL;
     }
     return obj;
+}
+
+napi_value cb_service(napi_env env, napi_callback_info info) {
+    i2c_settings_t settings = get_i2c_settings();
+    sh2_service();
+    return NULL;
+}
+
+// This struct is used to pass it as a cookie for a sh2_SensorCallback_t.
+// It's signature is void (void *, sh2_SensorEvent_t *)
+typedef struct cb_cookie_t {
+    napi_env   env;
+    napi_value jsFn;
+    napi_value cookie;
+} cb_cookie_t;
+
+// This function is the common C callback the driver calls on a sensor event.
+// It then calls the JS callback that is passed in the cookie structure
+// `cb_cookie_t`.
+static void sensor_callback(void* cookie, sh2_SensorEvent_t* event) {
+    napi_env    env = (napi_env)cookie;
+    napi_status status;
+
+    // Translate sensor event to napi_value
+    napi_value sensor_event = mkSensorEvent(env, event);
+    if (sensor_event == NULL) {
+        return;
+    }
+
+    // Cast the cookie and prepare the arguments
+    // to call the JS function
+    cb_cookie_t* c       = (cb_cookie_t*)cookie;
+    napi_value   argv[2] = {c->cookie, sensor_event};
+
+    // Call the callback function with the sensor data
+    napi_value this;
+    status = napi_get_global(c->env, &this);
+    status |= napi_call_function(c->env, this, c->jsFn, 2, argv, NULL);
+    if (status != napi_ok) {
+        napi_throw_error(
+            c->env, ERROR_CREATING_NAPI_VALUE,
+            "Sensor event happened but couldn't construct a napi value for it");
+        return;
+    }
+}
+
+// This function prepares the `cb_cookie_t` struct and calls the
+// sh2_setSensorCallback function.
+// It sets the callback function to be called when a sensor event occurs by
+// passing the `cb_cookie_t` struct in the cookie parameter.
+//
+// args:
+//  - jsFn: function to be called when a sensor event occurs
+//  - cookie: a value that will be passed to the sensor callback function
+napi_value cb_setSensorCallback(napi_env env, napi_callback_info info) {
+    napi_status status;
+
+    napi_value argv[MAX_ARGUMENTS] = {NULL};
+    size_t     argc                = MAX_ARGUMENTS;
+
+    bool success = parse_args(env, info, &argc, argv, NULL, NULL, 2, 2);
+    if (!success) {
+        napi_throw_error(env, ARGUMENT_ERROR,
+                         "Couldn't parse arguments in cb_setSensorCallback");
+        return NULL;
+    }
+
+    // Prepare the cookie struct
+    static cb_cookie_t* cookie = NULL;
+    if (cookie != NULL) {
+        free(cookie);
+    }
+    cookie         = malloc(sizeof(cb_cookie_t));
+    cookie->env    = env;
+    cookie->jsFn   = argv[0];
+    cookie->cookie = argv[1];
+
+    sh2_SensorCallback_t* callback = sensor_callback;
+    sh2_setSensorCallback(callback, cookie);
+    return NULL;
 }

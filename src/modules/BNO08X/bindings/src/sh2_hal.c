@@ -1,5 +1,6 @@
 #include "sh2/sh2_hal.h"
 #include "error.h"
+#include "sh2/sh2.h"
 #include "sh2_hal_supplement.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -147,7 +148,7 @@ void set_i2c_settings(i2c_settings_t* settings) {
 
 i2c_settings_t get_i2c_settings() { return CURRENT_I2C_SETTINGS; }
 
-sh2_Hal_t get_hal() {
+sh2_Hal_t make_hal() {
     sh2_Hal_t hal = {.open      = open_i2c,
                      .close     = close_i2c,
                      .read      = read_from_i2c,

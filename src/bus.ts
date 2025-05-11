@@ -65,12 +65,12 @@ if (!mocked) {
                     name: 'Mocked Device',
                 };
             },
-            i2cRead: async (address, length, buffer) => {
+            i2cRead: async (address: number, length: number, buffer: Buffer) => {
                 debug(`Mock: i2cRead(${address}, ${length}) called`);
                 buffer.fill(0x42, 0, length); // Mocked data
                 return { bytesRead: length, buffer };
             },
-            i2cWrite: async (address, length, buffer) => {
+            i2cWrite: async (address: number, length: number, buffer: Buffer) => {
                 debug(`Mock: i2cWrite(${address}, ${length}) called`);
                 return { bytesWritten: length, buffer };
             },
@@ -82,7 +82,7 @@ if (!mocked) {
                 debug(`Mock: readWord(${args.join(', ')}) called`);
                 return 0x4242; // Mocked word
             },
-            readI2cBlock: async (address, command, length, buffer): Promise<BytesRead> => {
+            readI2cBlock: async (address: number, command: number, length: number, buffer: Buffer): Promise<BytesRead> => {
                 debug(`Mock: readI2cBlock(${address}, ${command}, ${length}) called`);
                 buffer.fill(0x42, 0, length); // Mocked data
                 return { bytesRead: length, buffer };
@@ -93,7 +93,7 @@ if (!mocked) {
             writeWord: async (...args: any[]): Promise<void> => {
                 debug(`Mock: writeWord(${args.join(', ')}) called`);
             },
-            writeI2cBlock: async (address, command, length, buffer): Promise<BytesWritten> => {
+            writeI2cBlock: async (address: number, command: number, length: number, buffer: Buffer): Promise<BytesWritten> => {
                 debug(`Mock: writeI2cBlock(${address}, ${command}, ${length}) called`);
                 return { bytesWritten: length, buffer };
             },

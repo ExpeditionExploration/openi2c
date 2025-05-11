@@ -1,4 +1,4 @@
-export async function sleep(ms:number) {
+export async function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -7,7 +7,6 @@ export function mapValue(current: number, inMin = 0, inMax = 1, outMin = 0, outM
     return mapped;
 }
 
-export function toSigned16Bit(n) {
+export function toSigned16Bit(n: number) {
     return (n & 0x8000) ? n - 0x10000 : n;
-  }
-  
+}

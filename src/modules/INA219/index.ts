@@ -145,31 +145,24 @@ export class INA219 extends Module<Config> {
     async calibrate() {
         let calibration = await this.readCalibration();
 
-        let vBusMax = this.config.maxBusVoltage ? 32000 : 16000;
-        let shuntResistance = this.config.shuntResistance;
-        let vShuntMax = 40 << this.config.maxShuntVoltage;
+        let vBusMax = this.config.maxBusVoltage ? 32000 : 16000; // mV
+        let shuntResistance = this.config.shuntResistance; // Ohm
+        let vShuntMax = 40 << this.config.maxShuntVoltage; // mV
 
         // Calculate max possible/expected current
-        const maxExpectedI = vShuntMax / shuntResistance / 1000;
+        const maxExpectedI = vShuntMax / shuntResistance; // mA
 
-        this.debug(`Bus Max / mV: ${vBusMax}, Shunt Max / mV: ${vShuntMax}, Current Max / A: ${maxExpectedI}, Shunt Resistance / Ohm: ${shuntResistance}`);
+        this.debug(`Bus Max / mV: ${vBusMax}, Shunt Max / mV: ${vShuntMax}, Current Max / mA: ${maxExpectedI}, Shunt Resistance / Ohm: ${shuntResistance}`);
 
         // Calculate min and max LSB.
-        const minimumLSB = maxExpectedI / 32767; // 2**15 - 1
-        const maximumLSB = maxExpectedI / 4096;
+        const minimumLSB = maxExpectedI / 32767; // mA
+        const maximumLSB = maxExpectedI / 4096; // mA
+        this.lsbCurrent = Math.pow(10, Math.ceil(Math.log10(minimumLSB))); // Balance between most resolution and simple 10-decimal representation
 
-        // Choose LSB from midpoint of min and max. // TODO: Explain why this is better than what's in the Datasheet
-        const LSB = (minimumLSB + maximumLSB) / 2; // Adjust this for more granular or coarse resolution
-        this.lsbCurrent = LSB;
-
-        this.debug(`LSB / A / bit: ${LSB} (Min: ${minimumLSB}, Max: ${maximumLSB})`);
+        this.debug(`LSB / mA: ${this.lsbCurrent} (Min: ${minimumLSB}, Max: ${maximumLSB})`);
 
         // Calculate calibration register value and write it to the register.
-        calibration = Number.parseInt((0.04096 / (LSB * shuntResistance)).toFixed(0));
-
-        // TODO: Remove override when calibration works
-        this.lsbCurrent = 0.01; // Override
-        calibration = 4096; // Override
+        calibration = Number.parseInt((0.04096 / (this.lsbCurrent / 1000 * shuntResistance)).toFixed(0));
 
         await this.writeCalibration(calibration);
 
@@ -220,8 +213,8 @@ export class INA219 extends Module<Config> {
         const shunt_voltage = (await this.readBytes(SHUNT_VOLTAGE_REGISTER, 2)).readInt16BE(0);
         this.debug(`shunt voltage register value: ${shunt_voltage} (0b${(shunt_voltage >>> 0).toString(2).padStart(32, '0').slice(16, 32)})`);
         const SIGN = (shunt_voltage >> 15) & 0b1;
-        const LSB = 10;
-        this.debug(`SIGN: ${SIGN}, LSB / uV: ${LSB} `);
+        const LSB = 0.01;
+        this.debug(`SIGN: ${SIGN}, LSB / mV: ${LSB} `);
         return shunt_voltage * LSB; // Device takes care of PGA-based shifting
     }
 

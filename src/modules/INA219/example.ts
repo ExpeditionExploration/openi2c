@@ -15,7 +15,7 @@ async function main() {
         const current = await ina219.readCurrent();
         const calibration = await ina219.readCalibration();
 
-        console.log(`Shunt / uV: ${shunt}, Bus / mV: ${bus}, Current / mA: ${current}, Power / mW: ${power}`);
+        console.log(`Shunt / mV: ${shunt}, Bus / mV: ${bus}, Current / mA: ${current}, Power / mW: ${power}`);
 
         await sleep(300);
     }

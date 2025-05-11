@@ -1,24 +1,22 @@
-import { INA219, Config, ShuntVoltagePGA } from '.';
+import { INA219, Config, ShuntVoltage, BusVoltage } from '.';
 import { sleep } from '../../utils';
 
 async function main() {
-
-    const config: Config = {
-        address: 0x40, // Default address
-        maxBusVoltage: 5, // Application max voltage on bus
-        shuntResistance: 0.5, // Default
-        shuntVoltagePGA: ShuntVoltagePGA.HugeRange,
-        busADCResolution: 2, // Default is 12-bit resolution single take, which takes about 500μs
-        shuntADCResolution: 2,
-        HighBusVoltageRange: false // false for 16v, true for 32v
-    }
-
-    const ina219 = new INA219(1);
+    const ina219 = new INA219(5);
     await ina219.init();
 
-    while(true) {
+    let iter: number = 0;
+    while (true) {
+        console.log(`Measurement #${++iter}:`);
+
+        const shunt = await ina219.readShuntVoltage();
+        const bus = await ina219.readBusVoltage();
+        const power = await ina219.readPower();
         const current = await ina219.readCurrent();
-        console.log(`${current.toString()}mA`);
+        const calibration = await ina219.readCalibration();
+
+        console.log(`Shunt / uV: ${shunt}, Bus / mV: ${bus}, Current / mA: ${current}, Power / mW: ${power}`);
+
         await sleep(300);
     }
 }

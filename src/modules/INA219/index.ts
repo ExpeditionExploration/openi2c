@@ -7,6 +7,8 @@ import {
     POWER_REGISTER,
     SHUNT_VOLTAGE_REGISTER,
     ADCSetting,
+    ModeSetting,
+    ResetSetting
 } from './constants'
 
 export enum BusVoltage {
@@ -83,14 +85,13 @@ export type Config = {
     /**
      * TODO
      */
-    mode: number;
+    mode: ModeSetting;
 
     /**
      * TODO
      */
     calibration: number;
 }
-
 
 enum ADCShift {
     SADC = 0b1111 << 3,
@@ -100,13 +101,13 @@ enum ADCShift {
 export class INA219 extends Module<Config> {
     config: Config = {
         address: 0x40, // Default slave address with no soldering
-        reset: 0b0, // Default
+        reset: ResetSetting.NoReset, // Default
         maxBusVoltage: BusVoltage.Max32V, // Default
         shuntResistance: 0.1,
         maxShuntVoltage: ShuntVoltage.Max320mV, // Default to smaller resolution to avoid overflow.
         busADCResolution: ADCSetting.Reso12b, // Default is 12-bit mode, 1 sample
         shuntADCResolution: ADCSetting.Reso12b, // Default is 12-bit mode, 1 sample
-        mode: 0b111, // Default is Shunt and Bus, Continuous
+        mode: ModeSetting.ContinuousShuntAndBusVoltage,
         calibration: 0, // Default is No calibration
     }
 
@@ -124,21 +125,40 @@ export class INA219 extends Module<Config> {
         console.log(`Initialisation:`);
 
         // Init configuration register.
-        let configuration = await this.readConfiguration();
+        // let configuration = await this.readConfiguration();
+        // 0b0011100110011111; // Default
+        const configuration = await this.mkConfiguration();
+        await this.writeConfiguration(configuration);
 
-        configuration |= (this.config.reset & 0b1) << 15; // RST
+        await this.calibrate();
+    }
+
+    // Make config based on this.config
+    private async mkConfiguration(): Promise<Configuration> {
+        let configuration = 0b0011100110011111
+        configuration |= this.config.reset << 15; // RST
         configuration |= (this.config.maxBusVoltage & 0b1) << 13; // BRNG
         configuration |= (this.config.maxShuntVoltage & 0b11) << 11; // PGA
         configuration = await this.setBusADCResolutionAndSampling(
             configuration, this.config.busADCResolution);
         configuration = await this.setShuntADCResolutionAndSampling(
             configuration, this.config.shuntADCResolution);
-        configuration |= (this.config.mode & 0b111) << 0; // MODE
-        configuration = 0b0011100110011111; // Default
+        configuration |= await this.setMode(configuration, this.config.mode);
+        return configuration;
+    }
 
-        await this.writeConfiguration(configuration);
-
-        await this.calibrate();
+    /**
+     * Sets operating mode to given configuration register value
+     * 
+     * **NOTE** Does not write to configuration register.
+     * 
+     * @param cfg Variable with `Configuration` value
+     * @param mode Variable with `ModeSetting` value
+     * @returns New `Configuration` value which can be written to register
+     */
+    async setMode(cfg: Configuration, mode: ModeSetting)
+    : Promise<Configuration> {
+        return (cfg & ~3) | mode;
     }
 
     private async setADCResolutionAndSampling(
@@ -154,7 +174,7 @@ export class INA219 extends Module<Config> {
      * 
      * @param cfg Variable with `Configuration` value
      * @param reso See `ADCSettings` docstring for options
-     * @returns 
+     * @returns Updated `Configuration` value
      */
     async setBusADCResolutionAndSampling(cfg: Configuration, reso: ADCSetting):
     Promise<Configuration> {
@@ -168,7 +188,7 @@ export class INA219 extends Module<Config> {
      * 
      * @param cfg Variable with `Configuration` value
      * @param reso See `ADCSettings` docstring for options
-     * @returns 
+     * @returns Updated `Configuration` value
      */
     async setShuntADCResolutionAndSampling(cfg: Configuration, reso: ADCSetting):
     Promise<Configuration> {

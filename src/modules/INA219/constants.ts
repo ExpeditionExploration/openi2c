@@ -36,6 +36,25 @@ export enum ADCSetting {
     Reso12bSamples128 = 0b1111,
 }
 
+export enum ResetSetting {
+    NoReset,
+    Reset
+}
+
+/**
+ * Operating mode setting
+ */
+export enum ModeSetting {
+    PowerDown,
+    TriggeredShuntVoltage,
+    TriggeredBusVoltage,
+    TriggeredShuntAndBusVoltage,
+    ADCOff,
+    ContinuousShuntVoltage,
+    ContinuousBusVoltage,
+    ContinuousShuntAndBusVoltage
+}
+
 /**
  * Shunt voltage measurement data.
  * 

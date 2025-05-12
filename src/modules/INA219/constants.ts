@@ -8,6 +8,35 @@
 export const CONFIGURATION_REGISTER = 0x00;
 
 /**
+ * Conversion times:
+ * 
+ * - Reso9b: 84μs
+ * - Reso10b: 148μs
+ * - Reso11b: 276μs
+ * - Reso12b: 532μs
+ * - Reso12bSamples2: 1.06ms
+ * - Reso12bSamples4: 2.13ms
+ * - Reso12bSamples8: 4.26ms
+ * - Reso12bSamples16: 8.51ms
+ * - Reso12bSamples32: 17.02ms
+ * - Reso12bSamples64: 34.05ms
+ * - Reso12bSamples128: 68.10ms
+ */
+export enum ADCSetting {
+    Reso9b = 0b0000,
+    Reso10b = 0b0001,
+    Reso11b = 0b0010,
+    Reso12b = 0b0011,
+    Reso12bSamples2 = 0b1001,
+    Reso12bSamples4 = 0b1010,
+    Reso12bSamples8 = 0b1011,
+    Reso12bSamples16 = 0b1100,
+    Reso12bSamples32 = 0b1101,
+    Reso12bSamples64 = 0b1110,
+    Reso12bSamples128 = 0b1111,
+}
+
+/**
  * Shunt voltage measurement data.
  * 
  * *Read only*

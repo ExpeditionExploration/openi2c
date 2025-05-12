@@ -2,7 +2,11 @@ import { INA219, Config, ShuntVoltage, BusVoltage } from '.';
 import { sleep } from '../../utils';
 
 async function main() {
-    const ina219 = new INA219(5);
+    const bus = parseInt(process.argv[
+        process.argv.length - 1
+    ]);
+    
+    const ina219 = new INA219(isNaN(bus) ? 5 : bus);
     await ina219.init();
 
     let iter: number = 0;

@@ -1,3 +1,4 @@
+import { sleep } from '../../utils';
 import { Module } from '../Module';
 import {
     BUS_VOLTAGE_REGISTER,
@@ -8,7 +9,6 @@ import {
     SHUNT_VOLTAGE_REGISTER,
     ADCSetting,
     ModeSetting,
-    ResetSetting
 } from './constants'
 
 export enum BusVoltage {
@@ -166,10 +166,23 @@ export class INA219 extends Module<Config> {
         return configuration;
     }
 
+    /**
+     * Resets the configuration register to default value.
+     * 
+     * Sets the reset bit, then reinstates the configuration register value and
+     * re-calibrates the device.
+     */
     async reset(): Promise<void> {
         const configuration = await this.readConfiguration();
         const reset = configuration | (1 << 15);
+        await sleep(10);
         this.writeConfiguration(reset);
+        this.debug(`Reseted configuration register. Reinstating this.config.`);
+        await this.writeConfiguration(configuration);
+        this.debug(`Reinstated configuration register. Calibrating...`);
+        await sleep(10);
+        await this.calibrate();
+        this.debug(`Reinstated configuration register. Calibration done.`);
     }
 
     /**
@@ -223,7 +236,8 @@ export class INA219 extends Module<Config> {
     /**
      * Calibrate
      * 
-     * **Note**: Datasheet describes secondary, correctional calibration step. It is not implemented yet.
+     * **Note**: Datasheet describes secondary, correctional calibration step.
+     * It is not implemented yet.
      * 
      * @param vBusMax Volts
      * @param vShuntMax Volts

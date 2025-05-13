@@ -83,19 +83,25 @@ export type Config = {
     busADCResolution: ADCSetting;
 
     /**
-     * TODO
+     * Operating mode setting. See datasheet Mode Setting docstring.
      */
     mode: ModeSetting;
 
-    /**
-     * TODO
-     */
-    calibration: number;
 }
 
-enum ADCShift {
-    SADC = 0b1111 << 3,
-    BADC = 0b1111 << 7
+/**
+ * Configuration register shift amount for SADC and BADC bits
+ * 
+ * - SADC: Shunt ADC resolution and averaging setting
+ * - BADC: Bus ADC resolution and averaging setting
+ * 
+ * * See datasheet page 26/27 for more details.
+ * 
+ * Used internally by this file.
+ */
+enum ADCShiftAmount {
+    SADC = 3,
+    BADC = 7
 }
 
 export class INA219 extends Module<Config> {
@@ -108,11 +114,11 @@ export class INA219 extends Module<Config> {
         busADCResolution: ADCSetting.Reso12b, // Default is 12-bit mode, 1 sample
         shuntADCResolution: ADCSetting.Reso12b, // Default is 12-bit mode, 1 sample
         mode: ModeSetting.ContinuousShuntAndBusVoltage,
-        calibration: 0, // Default is No calibration
     }
 
     private lsbCurrent?: number;
     private lsbPower?: number;
+    private calibration: number = 0;
 
     constructor(busNumber?: number, config?: Partial<Config>) {
         super(busNumber);
@@ -135,7 +141,8 @@ export class INA219 extends Module<Config> {
 
     // Make config based on this.config
     private async mkConfiguration(): Promise<Configuration> {
-        let configuration = 0b0011100110011111
+        //let configuration = 0b0011100110011111;
+        let configuration = 0;
         configuration |= this.config.reset << 15; // RST
         configuration |= (this.config.maxBusVoltage & 0b1) << 13; // BRNG
         configuration |= (this.config.maxShuntVoltage & 0b11) << 11; // PGA
@@ -144,6 +151,8 @@ export class INA219 extends Module<Config> {
         configuration = await this.setShuntADCResolutionAndSampling(
             configuration, this.config.shuntADCResolution);
         configuration |= await this.setMode(configuration, this.config.mode);
+        this.debug(`0b${(configuration >>> 8).toString(2).padStart(8, '0')} ${(0xFF & (configuration >>> 0)).toString(2).padStart(8, '0')} : Configuration register value`);
+        this.debug(`0b0x111001 10011111 : Default configuration register value`);
         return configuration;
     }
 
@@ -162,9 +171,9 @@ export class INA219 extends Module<Config> {
     }
 
     private async setADCResolutionAndSampling(
-        cfg: Configuration, reso: ADCSetting, shift: ADCShift
+        cfg: Configuration, reso: ADCSetting, shift: ADCShiftAmount
     ): Promise<Configuration> {
-        return (cfg & ~(0xf << shift)) | reso;
+        return (cfg & ~(0xF << shift)) | (reso << shift);
     }
     
     /**
@@ -178,7 +187,7 @@ export class INA219 extends Module<Config> {
      */
     async setBusADCResolutionAndSampling(cfg: Configuration, reso: ADCSetting):
     Promise<Configuration> {
-        return this.setADCResolutionAndSampling(cfg, reso, ADCShift.BADC);
+        return this.setADCResolutionAndSampling(cfg, reso, ADCShiftAmount.BADC);
     }
 
     /**
@@ -192,7 +201,7 @@ export class INA219 extends Module<Config> {
      */
     async setShuntADCResolutionAndSampling(cfg: Configuration, reso: ADCSetting):
     Promise<Configuration> {
-        return this.setADCResolutionAndSampling(cfg, reso, ADCShift.SADC);
+        return this.setADCResolutionAndSampling(cfg, reso, ADCShiftAmount.SADC);
     }
 
     /**
@@ -231,7 +240,7 @@ export class INA219 extends Module<Config> {
         // Calculate power LSB
         this.lsbPower = 20 * this.lsbCurrent;
 
-        this.config.calibration = calibration;
+        this.calibration = calibration;
 
         /*
         // Compute maximum current before overflow.
@@ -292,6 +301,7 @@ export class INA219 extends Module<Config> {
     }
 
     async readPower(): Promise<number> {
+        await this.writeCalibration(this.calibration);
         const power = (await this.readBytes(POWER_REGISTER, 2)).readUint16BE(0);
         this.debug(`power register value: ${power} (0b${(power >>> 0).toString(2).padStart(16, '0')})`);
         const LSB = this.lsbPower!;
@@ -300,6 +310,7 @@ export class INA219 extends Module<Config> {
     }
 
     async readCurrent(): Promise<number> {
+        await this.writeCalibration(this.calibration);
         const current = (await this.readBytes(CURRENT_REGISTER, 2)).readInt16BE(0);
         this.debug(`current register value: ${current} (0b${(current >>> 0).toString(2).padStart(32, '0').slice(16, 32)})`);
         const CSIGN = (current >> 15) & 0b1;

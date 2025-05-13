@@ -43,6 +43,20 @@ export enum ResetSetting {
 
 /**
  * Operating mode setting
+ * 
+ * - `PowerDown` Triggered modes use as much power as continuous modes. If you
+ *   prefer to shave off a few mW and use triggered sampling/conversions,
+ *   then this should probably be included to the cycle.
+ * - Writing `TriggeredShuntVoltage` or `TriggeredBusVoltage` will cause the
+ *   device to take a shunt voltage measurement or a bus voltage.
+ * - `ADCOff` turns off the ADC.
+ * - `ContinuousShuntVoltage` will cause the device to take a shunt voltage
+ *   measurement continuously.
+ * - `ContinuousBusVoltage` will cause the device to take a bus voltage
+ *   measurement continuously.
+ * - `ContinuousShuntAndBusVoltage` will cause the device to take a shunt
+ *   voltage and bus voltage measurement continuously. This is the **default
+ *   mode**.
  */
 export enum ModeSetting {
     PowerDown,

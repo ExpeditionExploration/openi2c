@@ -53,11 +53,6 @@ export type Config = {
     // Configuration and calibration parameters
 
     /**
-     * TODO
-     */
-    reset: number;
-
-    /**
      * Set PGA gain.
      */
     maxShuntVoltage: ShuntVoltage;
@@ -104,10 +99,26 @@ enum ADCShiftAmount {
     BADC = 7
 }
 
+/**
+ * INA219 current measurement module
+ * 
+ * See the example and docstring for usage.
+ * 
+ * The constructor also accepts `Config` object with the following properties:
+ * - `address`: I2C address of the device. Default is 0x40.
+ * - `maxBusVoltage`: Maximum bus voltage. Default is 32V.
+ * - `shuntResistance`: Shunt resistance in Ohms. Default is 0.1 Ohm.
+ * - `maxShuntVoltage`: Maximum shunt voltage. Default is 320mV.
+ * - `busADCResolution`: Bus ADC resolution. Default is 12-bit mode, 1 sample.
+ * - `shuntADCResolution`: Shunt ADC resolution. Default is 12-bit mode, 1 sample.
+ * - `mode`: Operating mode. Default is continuous shunt and bus voltage.
+ * 
+ * Providing only partial `Config` makes the rest of the properties
+ * default to the values above.
+ */
 export class INA219 extends Module<Config> {
     config: Config = {
         address: 0x40, // Default slave address with no soldering
-        reset: ResetSetting.NoReset, // Default
         maxBusVoltage: BusVoltage.Max32V, // Default
         shuntResistance: 0.1,
         maxShuntVoltage: ShuntVoltage.Max320mV, // Default to smaller resolution to avoid overflow.
@@ -143,7 +154,6 @@ export class INA219 extends Module<Config> {
     private async mkConfiguration(): Promise<Configuration> {
         //let configuration = 0b0011100110011111;
         let configuration = 0;
-        configuration |= this.config.reset << 15; // RST
         configuration |= (this.config.maxBusVoltage & 0b1) << 13; // BRNG
         configuration |= (this.config.maxShuntVoltage & 0b11) << 11; // PGA
         configuration = await this.setBusADCResolutionAndSampling(
@@ -154,6 +164,12 @@ export class INA219 extends Module<Config> {
         this.debug(`0b${(configuration >>> 8).toString(2).padStart(8, '0')} ${(0xFF & (configuration >>> 0)).toString(2).padStart(8, '0')} : Configuration register value`);
         this.debug(`0b0x111001 10011111 : Default configuration register value`);
         return configuration;
+    }
+
+    async reset(): Promise<void> {
+        const configuration = await this.readConfiguration();
+        const reset = configuration | (1 << 15);
+        this.writeConfiguration(reset);
     }
 
     /**

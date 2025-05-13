@@ -1,16 +1,37 @@
-# INA219
+# INA219 driver
 Datasheet: http://www.adafruit.com/datasheets/ina219.pdf
 
+## About
+INA219 is a current, voltage and power measurement module.
 
 ## Usage
 ```ts
-import { INA219 } from 'openi2c/INA219';
+import { INA219, Config, ShuntVoltage, BusVoltage } from '.';
+import { sleep } from '../../utils';
 
-// Inside an async function...
-const currentSensor = new PCA9685();
-const current = await currentSensor.getCurrent();
-const power = await currentSensor.getPower();
-const voltage = await currentSensor.getVoltage(); // Needed?
+async function main() {
+    const bus = parseInt(process.argv[
+        process.argv.length - 1
+    ]);
+    
+    const ina219 = new INA219(isNaN(bus) ? 5 : bus);
+    await ina219.init();
+
+    let iter: number = 0;
+    while (true) {
+        console.log(`Measurement #${++iter}:`);
+
+        const shunt = await ina219.readShuntVoltage();
+        const bus = await ina219.readBusVoltage();
+        const power = await ina219.readPower();
+        const current = await ina219.readCurrent();
+        const calibration = await ina219.readCalibration();
+
+        console.log(`Shunt / mV: ${shunt}, Bus / mV: ${bus}, Current / mA: ${current}, Power / mW: ${power}`);
+
+        await sleep(300);
+    }
+}
+main();
 ```
 
-The `setDutyCycle(channel:number, dutyCycle:number)` method wraps over the `setPWM(channel:number, on:number, off:number)` method, allowing you to provide a 0-1 value to represent the duty cycle percentage. If you want more complex usage, you can use `setPWM` directly, which would give you the ability to set the on point and off point directly. You can read the data sheet for the module to get further information on this.

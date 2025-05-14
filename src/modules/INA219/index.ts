@@ -55,32 +55,32 @@ export type Config = {
     /**
      * Set PGA gain.
      */
-    maxShuntVoltage: ShuntVoltage;
+    maxShuntVoltage?: ShuntVoltage;
 
     /**
      * Maximum expected bus voltage.
      */
-    maxBusVoltage: BusVoltage;
+    maxBusVoltage?: BusVoltage;
 
     /**
      * Shunt resistor is 0.5ohm, but this lets you input the real value in case needed.
      */
-    shuntResistance: number;
+    shuntResistance?: number;
 
     /**
      * Shunt ADC resolution/averaging setting. See datasheet page 27. Four bits.
      */
-    shuntADCResolution: ADCSetting;
+    shuntADCResolution?: ADCSetting;
 
     /**
      * Bus ADC resolution/averaging setting. See datasheet page 26/27. Four bits.
      */
-    busADCResolution: ADCSetting;
+    busADCResolution?: ADCSetting;
 
     /**
      * Operating mode setting. See datasheet Mode Setting docstring.
      */
-    mode: ModeSetting;
+    mode?: ModeSetting;
 
 }
 
@@ -117,7 +117,7 @@ enum ADCShiftAmount {
  * default to the values above.
  */
 export class INA219 extends Module<Config> {
-    config: Config = {
+    private static config: Config = {
         address: 0x40, // Default slave address with no soldering
         maxBusVoltage: BusVoltage.Max32V, // Default
         shuntResistance: 0.1,
@@ -126,6 +126,7 @@ export class INA219 extends Module<Config> {
         shuntADCResolution: ADCSetting.Reso12b, // Default is 12-bit mode, 1 sample
         mode: ModeSetting.ContinuousShuntAndBusVoltage,
     }
+    config: Config;
 
     private lsbCurrent?: number;
     private lsbPower?: number;
@@ -133,37 +134,70 @@ export class INA219 extends Module<Config> {
 
     constructor(busNumber?: number, config?: Partial<Config>) {
         super(busNumber);
-        this.config = Object.assign(this.config, config);
+        this.debug(`@ctor BADC: 0x${config?.busADCResolution?.toString(16)}`);
+        this.debug(`@ctor SADC: 0x${config?.shuntADCResolution?.toString(16)}`);
+        this.config = Object.assign({}, INA219.config, config);
+        this.debug(`@ctor this.config BADC: 0x${this.config?.busADCResolution?.toString(16)}`);
+        this.debug(`@ctor this.config SADC: 0x${this.config?.shuntADCResolution?.toString(16)}`);
+
     }
 
     async init() {
         super.init();
-
-        console.log(`Initialisation:`);
 
         // Init configuration register.
         // let configuration = await this.readConfiguration();
         // 0b0011100110011111; // Default
         const configuration = await this.mkConfiguration();
         await this.writeConfiguration(configuration);
+        await sleep(5);
 
         await this.calibrate();
+        await sleep(5);
     }
 
-    // Make config based on this.config
+    /**
+     * Make config based on `this.config` object.
+     */
     private async mkConfiguration(): Promise<Configuration> {
         //let configuration = 0b0011100110011111;
         let configuration = 0;
-        configuration |= (this.config.maxBusVoltage & 0b1) << 13; // BRNG
-        configuration |= (this.config.maxShuntVoltage & 0b11) << 11; // PGA
+        configuration |= (this.config.maxBusVoltage! & 0b1) << 13; // BRNG
+        configuration |= (this.config.maxShuntVoltage! & 0b11) << 11; // PGA
         configuration = await this.setBusADCResolutionAndSampling(
-            configuration, this.config.busADCResolution);
+            configuration, this.config.busADCResolution!);
         configuration = await this.setShuntADCResolutionAndSampling(
-            configuration, this.config.shuntADCResolution);
-        configuration |= await this.setMode(configuration, this.config.mode);
+            configuration, this.config.shuntADCResolution!);
+        configuration |= await this.setMode(configuration, this.config.mode!);
         this.debug(`0b${(configuration >>> 8).toString(2).padStart(8, '0')} ${(0xFF & (configuration >>> 0)).toString(2).padStart(8, '0')} : Configuration register value`);
         this.debug(`0b0x111001 10011111 : Default configuration register value`);
         return configuration;
+    }
+
+    /**
+     * Converts between configuration register value and config object
+     * @param c Configuration register value
+     * @returns `Config` object
+     */
+    private async configurationToConfig(c: Configuration): Promise<Config> {
+        const RST = (c >> 15) & 0b1;
+        const D14UNUSED = (c >> 14) & 0b1;
+        const BRNG = (c >> 13) & 0b1;
+        const PGA = (c >> 11) & 0b11;
+        const BADC = (c >> 7) & 0b1111;
+        const SADC = (c >> 3) & 0b1111;
+        const MODE = (c >> 0) & 0b111;
+
+        const config: Config = {
+            address: this.config.address,
+            maxBusVoltage: BRNG,
+            maxShuntVoltage: PGA,
+            shuntResistance: this.config.shuntResistance,
+            busADCResolution: BADC,
+            shuntADCResolution: SADC,
+            mode: MODE,
+        };
+        return config;
     }
 
     /**
@@ -172,17 +206,36 @@ export class INA219 extends Module<Config> {
      * Sets the reset bit, then reinstates the configuration register value and
      * re-calibrates the device.
      */
+    async resetAndReinstateSettings(): Promise<void> {
+        const configuration = await this.readConfiguration();
+        await sleep(2);
+        const calibration = await this.readCalibration();
+        const reset = configuration | (1 << 15);
+        await sleep(2);
+        await this.writeConfiguration(reset);
+        this.debug(`Reseted configuration register. Reinstating this.config.`);
+        while ((await this.readConfiguration() & (1 << 15)) !== 0) {
+            await sleep(2);
+        }
+        await this.writeConfiguration(configuration);
+        await sleep(2);
+        await this.writeCalibration(calibration);
+        this.debug(`Reinstated configuration register. Calibration re-written.`);
+    }
+
+    /**
+     * Resets the configuration register to default value.
+     * 
+     * Sets the reset bit, which will self-clear. Update this.config to reflect
+     * new configuration register value.
+     */
     async reset(): Promise<void> {
         const configuration = await this.readConfiguration();
-        const reset = configuration | (1 << 15);
-        await sleep(10);
-        this.writeConfiguration(reset);
+        await this.writeConfiguration(configuration | (1 << 15));
         this.debug(`Reseted configuration register. Reinstating this.config.`);
-        await this.writeConfiguration(configuration);
-        this.debug(`Reinstated configuration register. Calibrating...`);
-        await sleep(10);
-        await this.calibrate();
-        this.debug(`Reinstated configuration register. Calibration done.`);
+        await sleep(2);
+        const resetedConfiguration = await this.readConfiguration();
+        this.config = await this.configurationToConfig(resetedConfiguration);
     }
 
     /**
@@ -202,7 +255,11 @@ export class INA219 extends Module<Config> {
     private async setADCResolutionAndSampling(
         cfg: Configuration, reso: ADCSetting, shift: ADCShiftAmount
     ): Promise<Configuration> {
-        return (cfg & ~(0xF << shift)) | (reso << shift);
+        const ret = (cfg & ~(0xF << shift)) | (reso << shift);
+        this.debug(`setting ADC reso. Shift: ${shift}, reso: 0x${reso.toString(16)}`);
+        this.debug(`this.config SADC: 0x${this.config.shuntADCResolution?.toString(16)}`);
+        this.debug(`this.config BADC: 0x${this.config.busADCResolution?.toString(16)}`);
+        return ret;
     }
     
     /**
@@ -247,8 +304,8 @@ export class INA219 extends Module<Config> {
         let calibration = await this.readCalibration();
 
         let vBusMax = this.config.maxBusVoltage ? 32000 : 16000; // mV
-        let shuntResistance = this.config.shuntResistance; // Ohm
-        let vShuntMax = 40 << this.config.maxShuntVoltage; // mV
+        let shuntResistance = this.config.shuntResistance!; // Ohm
+        let vShuntMax = 40 << this.config.maxShuntVoltage!; // mV
 
         // Calculate max possible/expected current
         const maxExpectedI = vShuntMax / shuntResistance; // mA
@@ -296,6 +353,11 @@ export class INA219 extends Module<Config> {
         */
     }
 
+    /**
+     * Read raw configuration register value
+     * 
+     * @returns Configuration register value
+     */
     async readConfiguration(): Promise<Configuration> {
         const configuration = (await this.readBytes(CONFIGURATION_REGISTER, 2)).readUint16BE(0);
         this.debug(`configuration register value: ${configuration}(0b${(configuration >>> 0).toString(2).padStart(16, '0')})`);

@@ -35,3 +35,7 @@ async function main() {
 main();
 ```
 
+## Running tests
+
+First, install deps with `npm install --production=false` or just `npm i`. Tests are run by running command `I2C_BUS=1 I2C_ADDRESS=0x4b npm test`. It defaults to bus `5` and address `0x4b`.
+

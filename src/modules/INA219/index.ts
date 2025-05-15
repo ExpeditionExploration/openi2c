@@ -208,17 +208,14 @@ export class INA219 extends Module<Config> {
      */
     async resetAndReinstateSettings(): Promise<void> {
         const configuration = await this.readConfiguration();
-        await sleep(2);
         const calibration = await this.readCalibration();
         const reset = configuration | (1 << 15);
-        await sleep(2);
         await this.writeConfiguration(reset);
         this.debug(`Reseted configuration register. Reinstating this.config.`);
         while ((await this.readConfiguration() & (1 << 15)) !== 0) {
-            await sleep(2);
+            await sleep(5);
         }
         await this.writeConfiguration(configuration);
-        await sleep(2);
         await this.writeCalibration(calibration);
         this.debug(`Reinstated configuration register. Calibration re-written.`);
     }
@@ -232,10 +229,10 @@ export class INA219 extends Module<Config> {
     async reset(): Promise<void> {
         const configuration = await this.readConfiguration();
         await this.writeConfiguration(configuration | (1 << 15));
-        this.debug(`Reseted configuration register. Reinstating this.config.`);
-        await sleep(2);
-        const resetedConfiguration = await this.readConfiguration();
-        this.config = await this.configurationToConfig(resetedConfiguration);
+        await sleep(150);
+        // const resetedConfiguration = await this.readConfiguration();
+        this.config = await this.configurationToConfig(0x399F);
+        await sleep(100);
     }
 
     /**
@@ -328,29 +325,6 @@ export class INA219 extends Module<Config> {
         this.lsbPower = 20 * this.lsbCurrent;
 
         this.calibration = calibration;
-
-        /*
-        // Compute maximum current before overflow.
-        const maxCurrent = LSB * 32767;
-        let maxCurrentBeforeOverflow: number;
-        if (maxCurrent >= maxPossibleI) {
-            maxCurrentBeforeOverflow = maxPossibleI;
-        } else {
-            maxCurrentBeforeOverflow = maxCurrent;
-        }
-
-        // Compute maximum shunt voltage.
-        const maxShuntVoltage = maxCurrentBeforeOverflow * shuntResistance;
-        let maxShuntVoltageBeforeOverflow: number;
-        if (maxShuntVoltage >= vShuntMax) {
-            maxShuntVoltageBeforeOverflow = vShuntMax;
-        } else {
-            maxShuntVoltageBeforeOverflow = maxShuntVoltage;
-        }
-
-        // Calculate maximum power
-        const maximumPower = maxCurrentBeforeOverflow * vBusMax;
-        */
     }
 
     /**

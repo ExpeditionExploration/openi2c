@@ -9,15 +9,20 @@ import {
     LED0_OFF_H,
 } from './constants'
 
+// 12-bit PWM resolution (0..4095)
+const PWM_STEPS = 4096;
+
 type Config = {
     address: number;
     frequency: number;
+    oscillatorHz: number; // PCA9685 clock source (default 25 MHz)
 }
 
 export class PCA9685 extends Module<Config> {
     config = {
         address: 0x40,
         frequency: 50,
+        oscillatorHz: 25_000_000,
     }
 
     constructor(busNumber?: number, config?: Partial<Config>) {
@@ -37,13 +42,13 @@ export class PCA9685 extends Module<Config> {
             dutyCycle = 1 - dutyCycle;
         }
         this.debug(`Set duty cycle for channel ${channel} to ${dutyCycle}`);
-        await this.setPWM(channel, 0, Math.round(dutyCycle * 4095));
+        await this.setPWM(channel, 0, Math.round(dutyCycle * (PWM_STEPS - 1)));
     }
 
     async setFrequency(freq: number) {
         this.debug(`Set PWM frequency to ${freq} Hz`);
 
-        const prescale = Math.round(25000000 / (4096 * freq)) - 1;
+        const prescale = Math.round(this.config.oscillatorHz / (PWM_STEPS * freq)) - 1;
 
         await this.bus.writeByte(this.address, MODE1, 0x10); // sleep
         await this.bus.writeByte(this.address, PRESCALE, prescale); // set frequency prescaler

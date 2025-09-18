@@ -11,6 +11,8 @@ import {
 
 // 12-bit PWM resolution (0..4095)
 const PWM_STEPS = 4096;
+const REG_STRIDE = 4;           // ON_L, ON_H, OFF_L, OFF_H per channel
+const FULL_FLAG_BIT = 1 << 4;   // Bit 4 in *_H: FULL_ON/FULL_OFF
 
 type Config = {
     address: number;
@@ -60,11 +62,24 @@ export class PCA9685 extends Module<Config> {
 
     async setPWM(channel: number, on: number, off: number) {
         this.debug(`Set PWM for channel ${channel} to ${on} to ${off}`);
+
+        // 100% duty (full on): set FULL_ON in ON_H, clear FULL_OFF
+        if (off >= PWM_STEPS - 1) {
+            await Promise.all([
+                this.bus.writeByte(this.address, LED0_ON_L  + REG_STRIDE * channel, 0x00),
+                this.bus.writeByte(this.address, LED0_ON_H  + REG_STRIDE * channel, FULL_FLAG_BIT),
+                this.bus.writeByte(this.address, LED0_OFF_L + REG_STRIDE * channel, 0x00),
+                this.bus.writeByte(this.address, LED0_OFF_H + REG_STRIDE * channel, 0x00),
+            ]);
+            return;
+        }
+
+        // Normal PWM: write 12-bit ON/OFF
         await Promise.all([
-            this.bus.writeByte(this.address, LED0_ON_L + 4 * channel, on & 0xff),
-            this.bus.writeByte(this.address, LED0_ON_H + 4 * channel, on >> 8),
-            this.bus.writeByte(this.address, LED0_OFF_L + 4 * channel, off & 0xff),
-            this.bus.writeByte(this.address, LED0_OFF_H + 4 * channel, off >> 8)
+            this.bus.writeByte(this.address, LED0_ON_L  + REG_STRIDE * channel, on & 0xff),
+            this.bus.writeByte(this.address, LED0_ON_H  + REG_STRIDE * channel, on >> 8),
+            this.bus.writeByte(this.address, LED0_OFF_L + REG_STRIDE * channel, off & 0xff),
+            this.bus.writeByte(this.address, LED0_OFF_H + REG_STRIDE * channel, off >> 8),
         ]);
     }
 }

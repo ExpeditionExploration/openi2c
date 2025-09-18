@@ -31,9 +31,11 @@ export class PCA9685 extends Module<Config> {
         await this.setFrequency(this.config.frequency);
     }
 
-    async setDutyCycle(channel: number, dutyCycle: number): Promise<void> {
+    async setDutyCycle(channel: number, dutyCycle: number, inverse: boolean = false): Promise<void> {
         dutyCycle = Math.min(1, Math.max(0, dutyCycle)); // Clamp to [0,1]
-
+        if (inverse) {
+            dutyCycle = 1 - dutyCycle;
+        }
         this.debug(`Set duty cycle for channel ${channel} to ${dutyCycle}`);
         await this.setPWM(channel, 0, Math.round(dutyCycle * 4095));
     }

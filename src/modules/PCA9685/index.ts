@@ -23,7 +23,7 @@ type Config = {
 export class PCA9685 extends Module<Config> {
     config = {
         address: 0x40,
-        frequency: 4096,
+        frequency: 1526,
         oscillatorHz: 25_000_000,
     }
 

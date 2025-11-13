@@ -74,6 +74,17 @@ export class PCA9685 extends Module<Config> {
             return;
         }
 
+         // 0% duty (full off): set FULL_OFF in OFF_H, clear FULL_ON
+        if (off <= 0) {
+            await Promise.all([
+                this.bus.writeByte(this.address, LED0_ON_L  + REG_STRIDE * channel, 0x00),
+                this.bus.writeByte(this.address, LED0_ON_H  + REG_STRIDE * channel, 0x00),
+                this.bus.writeByte(this.address, LED0_OFF_L + REG_STRIDE * channel, 0x00),
+                this.bus.writeByte(this.address, LED0_OFF_H + REG_STRIDE * channel, FULL_FLAG_BIT),
+            ]);
+            return;
+        }
+
         // Normal PWM: write 12-bit ON/OFF
         await Promise.all([
             this.bus.writeByte(this.address, LED0_ON_L  + REG_STRIDE * channel, on & 0xff),
